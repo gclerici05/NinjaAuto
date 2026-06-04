@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+{% load static %}
+<link rel="stylesheet" href="{% static 'styles.css' %}">
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ninja Auto Detailing – Precision. Perfection. Power.</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --deep: #111111;
+    --panel: #161616;
+    --red: #c8102e;
+    --red-glow: rgba(200,16,46,0.35);
+    --gold: #d4a843;
+    --white: #f5f5f0;
+    --muted: #b2b2aa;
+    --muted-soft: #909088;
+    --border: rgba(255,255,255,0.10);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 400;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── Custom Cursor ── */
+  .cursor {
+    position: fixed; top: 0; left: 0; z-index: 9999;
+    pointer-events: none;
+  }
+  .cursor-dot {
+    width: 8px; height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    position: absolute;
+    transform: translate(-50%,-50%);
+    transition: transform 0.1s ease;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(200,16,46,0.6);
+    border-radius: 50%;
+    position: absolute;
+    transform: translate(-50%,-50%);
+    transition: all 0.15s ease;
+  }
+  @media (hover: none) { .cursor { display: none; } body { cursor: auto; } }
+
+  /* ── Nav ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.4rem 4vw;
+    background: linear-gradient(to bottom, rgba(10,10,10,0.95), transparent);
+    transition: background 0.4s;
+  }
+  nav.scrolled { background: rgba(10,10,10,0.97); border-bottom: 1px solid var(--border); }
+
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+    letter-spacing: 0.12em;
+    color: var(--white);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .nav-logo span { color: var(--red); }
+  .logo-icon {
+    width: 32px; height: 32px;
+    border: 2px solid var(--red);
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+    transform: rotate(-5deg);
+  }
+
+  .nav-links {
+    display: flex; gap: 2.5rem; list-style: none;
+  }
+  .nav-links a {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 500;
+    font-size: 0.88rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #a0a098;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--white); }
+
+  .nav-cta {
+    background: var(--red);
+    color: var(--white) !important;
+    padding: 0.5rem 1.4rem;
+    letter-spacing: 0.15em;
+    transition: background 0.3s, box-shadow 0.3s !important;
+  }
+  .nav-cta:hover { background: #a80e26 !important; box-shadow: 0 0 24px var(--red-glow) !important; }
+
+  /* hamburger */
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+  .hamburger span { width: 24px; height: 2px; background: var(--white); transition: all 0.3s; display: block; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .mobile-menu {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 90;
+    background: rgba(10,10,10,0.98);
+    flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem;
+    padding: 2rem;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    letter-spacing: 0.1em;
+    color: var(--white);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .mobile-menu a:hover { color: var(--red); }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    height: 100svh;
+    min-height: 600px;
+    display: flex; align-items: center;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 50%, rgba(200,16,46,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(212,168,67,0.04) 0%, transparent 50%),
+      linear-gradient(135deg, #0a0a0a 0%, #1a0a0d 50%, #0a0a0a 100%);
+  }
+
+  /* Diagonal stripe texture */
+  .hero-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 40px,
+      rgba(255,255,255,0.012) 40px,
+      rgba(255,255,255,0.012) 41px
+    );
+  }
+
+  /* Animated scan line */
+  .scan-line {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--red), transparent);
+    animation: scanDown 4s ease-in-out infinite;
+    opacity: 0.5;
+  }
+  @keyframes scanDown {
+    0% { top: 0; opacity: 0.6; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  .hero-content {
+    position: relative; z-index: 2;
+    padding: 0 6vw;
+    max-width: 900px;
+  }
+
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.2rem;
+    opacity: 0; animation: fadeUp 0.8s 0.3s forwards;
+  }
+  .hero-eyebrow-line {
+    width: 40px; height: 1px; background: var(--red);
+  }
+  .hero-eyebrow-text {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 12vw, 10rem);
+    line-height: 0.9;
+    letter-spacing: 0.04em;
+    margin-bottom: 1.5rem;
+    opacity: 0; animation: fadeUp 0.9s 0.5s forwards;
+  }
+  .hero-title .line2 { color: var(--red); display: block; }
+  .hero-title .line3 {
+    display: block;
+    -webkit-text-stroke: 1px rgba(245,245,240,0.25);
+    color: transparent;
+  }
+
+  .hero-sub {
+    font-size: clamp(1rem, 1.8vw, 1.2rem);
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    max-width: 480px;
+    line-height: 1.75;
+    margin-bottom: 2.5rem;
+    opacity: 0; animation: fadeUp 0.9s 0.7s forwards;
+  }
+
+  .hero-actions {
+    display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+    opacity: 0; animation: fadeUp 0.9s 0.9s forwards;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    background: var(--red);
+    color: var(--white);
+    padding: 1rem 2.2rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.3s;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  }
+  .btn-primary:hover {
+    background: #a80e26;
+    box-shadow: 0 8px 40px var(--red-glow), 0 0 0 1px var(--red);
+    transform: translateY(-2px);
+  }
+
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    background: transparent;
+    color: var(--white);
+    padding: 1rem 2rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 500;
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); }
+
+  /* Floating stat cards */
+  .hero-stats {
+    position: absolute;
+    right: 5vw; bottom: 8vh;
+    display: flex; flex-direction: column; gap: 1rem;
+    z-index: 2;
+    opacity: 0; animation: fadeLeft 1s 1.1s forwards;
+  }
+  .stat-card {
+    background: rgba(22,22,22,0.9);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--red);
+    padding: 1rem 1.4rem;
+    backdrop-filter: blur(10px);
+    min-width: 160px;
+  }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--white);
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+  .stat-num span { color: var(--red); }
+  .stat-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+
+  /* big decorative text */
+  .hero-deco {
+    position: absolute;
+    right: -2vw; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(8rem, 18vw, 20rem);
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.04);
+    letter-spacing: 0.1em;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+    z-index: 1;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeLeft {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @media (max-width: 768px) {
+    .hero-stats { display: none; }
+    .hero-deco { display: none; }
+  }
+
+  /* ── Services ── */
+  section { padding: 6rem 6vw; }
+
+  .section-label {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 0.8rem;
+  }
+  .section-label-line { width: 30px; height: 1px; background: var(--red); }
+  .section-label-text {
+    font-size: 0.82rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    letter-spacing: 0.05em;
+    line-height: 1.05;
+    margin-bottom: 1rem;
+  }
+  .section-title em { color: var(--red); font-style: normal; }
+
+  .section-desc {
+    color: var(--muted);
+    font-size: 1.05rem;
+    font-weight: 400;
+    line-height: 1.8;
+    max-width: 520px;
+    margin-bottom: 3.5rem;
+  }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5px;
+    background: var(--border);
+  }
+
+  .service-card {
+    background: var(--deep);
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s;
+    cursor: default;
+  }
+  .service-card::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--red);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+  .service-card:hover { background: var(--panel); }
+  .service-card:hover::before { transform: scaleX(1); }
+
+  .service-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(255, 255, 255);
+    position: absolute;
+    top: 1rem; right: 1.5rem;
+    line-height: 1;
+  }
+
+  .service-icon {
+    width: 48px; height: 48px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .service-card:hover .service-icon {
+    border-color: var(--red);
+    box-shadow: 0 0 20px var(--red-glow);
+  }
+
+  .service-title {
+    font-family: 'Bebas Neue', sans-serif;
+    color: var(--red);
+    font-size: 1.6rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.7rem;
+  }
+
+  .service-desc {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.75;
+    margin-bottom: 1.5rem;
+  }
+
+  .service-price {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+  }
+  .service-price span { font-family: 'Rajdhani', sans-serif; font-size: 0.82rem; font-weight: 400; color: var(--muted); }
+
+  /* ── Why Us ── */
+  .why-section {
+    background: var(--deep);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: center;
+  }
+
+  @media (max-width: 900px) {
+    .why-grid { grid-template-columns: 1fr; gap: 3rem; }
+  }
+
+  .why-left .big-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 7vw, 6rem);
+    line-height: 1;
+    letter-spacing: 0.04em;
+  }
+  .why-left .big-text .accent { color: var(--red); }
+
+  .why-right {
+    display: flex; flex-direction: column; gap: 2rem;
+  }
+
+  .why-item {
+    display: flex; gap: 1.5rem; align-items: flex-start;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .why-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .why-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(255, 255, 255);
+    line-height: 1;
+    min-width: 2rem;
+  }
+
+  .why-info h3 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    color: var(--red);
+    font-size: 1.05rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .why-info p {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  /* ── Process ── */
+  .process-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0;
+    position: relative;
+  }
+
+  .process-step {
+    padding: 2.5rem 2rem;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+  .process-step:last-child { border-right: none; }
+
+  .process-step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5rem;
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(255, 255, 255);
+    line-height: 1;
+    margin-bottom: 1rem;
+  }
+  .process-step h3 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+    font-size: 1rem;
+  }
+  .process-step p {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  @media (max-width: 600px) {
+    .process-steps { grid-template-columns: 1fr; }
+    .process-step { border-right: none; border-bottom: 1px solid var(--border); }
+    .process-step:last-child { border-bottom: none; }
+  }
+
+  /* ── Testimonials ── */
+  .testimonials-section { background: var(--black); }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .testimonial-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    position: relative;
+  }
+  .testimonial-card::before {
+    content: '"';
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 6rem;
+    color: var(--red);
+    opacity: 0.15;
+    position: absolute;
+    top: -0.5rem; left: 1.2rem;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .testimonial-stars {
+    color: var(--gold);
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+
+  .testimonial-text {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.8;
+    color: rgba(245,245,240,0.92);
+    margin-bottom: 1.5rem;
+    font-style: italic;
+  }
+
+  .testimonial-author {
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .author-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--white);
+    flex-shrink: 0;
+  }
+  .author-info strong {
+    display: block;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+  }
+  .author-info span {
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── CTA Banner ── */
+  .cta-section {
+    position: relative;
+    overflow: hidden;
+    background: var(--red);
+    padding: 5rem 6vw;
+    text-align: center;
+  }
+  .cta-section::before {
+    content: 'NINJA';
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(8rem, 20vw, 22rem);
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.08);
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .cta-section h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  .cta-section p {
+    font-size: 1.15rem;
+    font-weight: 400;
+    opacity: 0.92;
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+  .cta-section .btn-white {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    background: var(--white);
+    color: var(--red);
+    padding: 1.1rem 2.8rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.3s;
+    position: relative;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  }
+  .cta-section .btn-white:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+
+  /* ── Footer ── */
+  footer {
+    background: var(--deep);
+    border-top: 1px solid var(--border);
+    padding: 4rem 6vw 2rem;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+  }
+
+  @media (max-width: 900px) {
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 520px) {
+    .footer-grid { grid-template-columns: 1fr; }
+  }
+
+  .footer-brand p {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.75;
+    margin-top: 1rem;
+    max-width: 280px;
+  }
+
+  .footer-col h4 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 1.2rem;
+  }
+
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+  .footer-col ul a {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+    letter-spacing: 0.04em;
+  }
+  .footer-col ul a:hover { color: var(--white); }
+
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-bottom p {
+    font-size: 0.88rem;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .footer-socials { display: flex; gap: 1rem; }
+  .footer-socials a {
+    width: 34px; height: 34px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+  }
+  .footer-socials a:hover { border-color: var(--red); color: var(--white); }
+
+  /* ── Scroll reveal ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Horizontal scrolling marquee */
+  .marquee-wrap {
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+    background: var(--panel);
+  }
+  .marquee-track {
+    display: flex;
+    gap: 0;
+    animation: marquee 18s linear infinite;
+    white-space: nowrap;
+  }
+  .marquee-item {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    color: #909088;
+    padding: 0 2.5rem;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 2.5rem;
+  }
+  .marquee-item::after {
+    content: '✦';
+    color: var(--red);
+    font-size: 0.5rem;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* Phone number highlight */
+  .phone-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(200,16,46,0.1);
+    border: 1px solid rgba(200,16,46,0.25);
+    padding: 0.7rem 1.5rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.12em;
+    color: var(--white);
+    text-decoration: none;
+    transition: all 0.3s;
+    margin-top: 1.5rem;
+    display: block;
+    width: fit-content;
+  }
+  .phone-badge:hover { background: rgba(200,16,46,0.2); border-color: var(--red); }
+  .phone-badge .ph-icon { color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor">
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+</div>
+
+<!-- Nav -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">
+    <div class="logo-icon">忍</div>
+    NINJA <span>AUTO</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#why">Why Us</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#testimonials">Reviews</a></li>
+    <li><a href="#contact" class="nav-cta">Book Now</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- Mobile menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#services" onclick="closeMobile()">Services</a>
+  <a href="#why" onclick="closeMobile()">Why Us</a>
+  <a href="#process" onclick="closeMobile()">Process</a>
+  <a href="#testimonials" onclick="closeMobile()">Reviews</a>
+  <a href="#contact" onclick="closeMobile()" style="color:var(--red)">Book Now</a>
+</div>
+
+<!-- Hero -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="scan-line"></div>
+  <div class="hero-deco">忍者</div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-line"></div>
+      <span class="hero-eyebrow-text">Premium Auto Detailing</span>
+    </div>
+    <h1 class="hero-title">
+      NINJA<br>
+      <span class="line2">AUTO</span>
+      <span class="line3">DETAILING</span>
+    </h1>
+    <p class="hero-sub">Elite precision detailing that transforms your vehicle into a work of art. We move in silence — your car speaks volumes.</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">
+        <span>Book a Detail</span>
+        <span>→</span>
+      </a>
+      <a href="#services" class="btn-ghost">
+        <span>View Services</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-card">
+      <div class="stat-num">500<span>+</span></div>
+      <div class="stat-label">Cars Detailed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">5<span>★</span></div>
+      <div class="stat-label">Average Rating</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">8<span>+</span></div>
+      <div class="stat-label">Years Experience</div>
+    </div>
+  </div>
+</section>
+
+<!-- Marquee -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="marquee-item">Paint Correction</div>
+    <div class="marquee-item">Ceramic Coating</div>
+    <div class="marquee-item">Interior Deep Clean</div>
+    <div class="marquee-item">Paint Protection Film</div>
+    <div class="marquee-item">Engine Bay Detailing</div>
+    <div class="marquee-item">Headlight Restoration</div>
+    <div class="marquee-item">Odor Elimination</div>
+    <div class="marquee-item">Scratch Removal</div>
+    <!-- duplicate for seamless loop -->
+    <div class="marquee-item">Paint Correction</div>
+    <div class="marquee-item">Ceramic Coating</div>
+    <div class="marquee-item">Interior Deep Clean</div>
+    <div class="marquee-item">Paint Protection Film</div>
+    <div class="marquee-item">Engine Bay Detailing</div>
+    <div class="marquee-item">Headlight Restoration</div>
+    <div class="marquee-item">Odor Elimination</div>
+    <div class="marquee-item">Scratch Removal</div>
+  </div>
+</div>
+
+<!-- Services -->
+<section id="services">
+  <div class="section-label reveal">
+    <div class="section-label-line"></div>
+    <span class="section-label-text">What We Offer</span>
+  </div>
+  <h2 class="section-title reveal">OUR <em>SERVICES</em></h2>
+  <p class="section-desc reveal">Every package is executed with surgical precision. No shortcuts. No compromises.</p>
+
+  <div class="services-grid reveal">
+    <a href="{% url 'booking' %}?service= Express Detail" class="service-link"> 
+    <div class="service-card">
+      <div class="service-number">01</div>
+      <div class="service-icon">✦</div>
+      <h3 class="service-title">Express Detail</h3>
+      <p class="service-desc">Full exterior hand wash, clay bar treatment, tire dressing, and interior vacuum with surface wipe-down.</p>
+      <div class="service-price">FROM $89 <span>/ per vehicle</span></div>
+    </div>
+     </a>
+     <a href="{% url 'booking' %}?service= Full Detail" class="service-link">
+    <div class="service-card">
+      <div class="service-number">02</div>
+      <div class="service-icon">◈</div>
+      <h3 class="service-title">Full Detail</h3>
+      <p class="service-desc">Complete interior shampooing, leather conditioning, full exterior decontamination, and machine polishing.</p>
+      <div class="service-price">FROM $249 <span>/ per vehicle</span></div>
+    </div>
+    </a>
+    <a href="{% url 'booking' %}?service= Ceramic Coating" class="service-link">
+    <div class="service-card">
+      <div class="service-number">03</div>
+      <div class="service-icon">⬡</div>
+      <h3 class="service-title">Ceramic Coating</h3>
+      <p class="service-desc">Professional-grade nano-ceramic coating providing up to 5 years of hydrophobic, UV-blocking protection.</p>
+      <div class="service-price">FROM $699 <span>/ per vehicle</span></div>
+    </div>
+    </a>
+    <a href="{% url 'booking' %}?service= Paint Correction" class="service-link">
+    <div class="service-card">
+      <div class="service-number">04</div>
+      <div class="service-icon">◇</div>
+      <h3 class="service-title">Paint Correction</h3>
+      <p class="service-desc">Multi-stage machine polishing to eliminate swirl marks, light scratches, oxidation, and water spots.</p>
+      <div class="service-price">FROM $399 <span>/ per vehicle</span></div>
+    </div>
+    </a>
+    <a href="{% url 'booking' %}?service= PPF Installation" class="service-link">
+    <div class="service-card">
+      <div class="service-number">05</div>
+      <div class="service-icon">▣</div>
+      <h3 class="service-title">PPF Installation</h3>
+      <p class="service-desc">Clear urethane film applied to high-impact areas, offering self-healing protection against rock chips.</p>
+      <div class="service-price">FROM $499 <span>/ per panel</span></div>
+    </div>
+    </a>
+    <a href="{% url 'booking' %}?service= Elite Package" class="service-link">
+    <div class="service-card">
+      <div class="service-number">06</div>
+      <div class="service-icon">⬟</div>
+      <h3 class="service-title">Elite Package</h3>
+      <p class="service-desc">The ultimate transformation: paint correction + ceramic coating + full interior restoration. Reserved for perfectionists.</p>
+      <div class="service-price">FROM $1,299 <span>/ per vehicle</span></div>
+    </div>
+    </a>
+  </div>
+</section>
+
+<!-- Why Us -->
+<section id="why" class="why-section">
+  <div class="why-grid">
+    <div class="why-left">
+      <div class="section-label reveal">
+        <div class="section-label-line"></div>
+        <span class="section-label-text">Our Edge</span>
+      </div>
+      <div class="big-text reveal">
+        WE DON'T<br>
+        JUST CLEAN.<br>
+        <span class="accent">WE PERFECT.</span>
+      </div>
+      <p style="color:var(--muted);font-size:1rem;font-weight:400;line-height:1.8;margin-top:1.5rem;max-width:400px;" class="reveal">
+        From daily drivers to exotic supercars, every vehicle receives the same uncompromising level of care. Ninja precision — every single time.
+      </p>
+    </div>
+    <div class="why-right reveal">
+      <div class="why-item">
+        <div class="why-num">01</div>
+        <div class="why-info">
+          <h3>Certified Professionals</h3>
+          <p>Our detailers hold IDA certifications and train continuously on the latest techniques and products.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <div class="why-num">02</div>
+        <div class="why-info">
+          <h3>Premium Products Only</h3>
+          <p>We use Gyeon, Gtechniq, and CarPro — the same brands trusted by professional race teams worldwide.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <div class="why-num">03</div>
+        <div class="why-info">
+          <h3>Mobile & Shop Service</h3>
+          <p>We come to you — or visit our controlled-environment studio for the most demanding work.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <div class="why-num">04</div>
+        <div class="why-info">
+          <h3>Satisfaction Guaranteed</h3>
+          <p>If it's not perfect, we fix it. No questions. No excuses. That's the Ninja standard.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Process -->
+<section id="process">
+  <div class="section-label reveal">
+    <div class="section-label-line"></div>
+    <span class="section-label-text">How It Works</span>
+  </div>
+  <h2 class="section-title reveal">THE <em>PROCESS</em></h2>
+  <p class="section-desc reveal">Simple, transparent, and always on your schedule.</p>
+
+  <div class="process-steps reveal">
+    <div class="process-step">
+      <div class="process-step-num">01</div>
+      <h3>Book Online</h3>
+      <p>Choose your package, pick a date, and we confirm within the hour. No phone tag.</p>
+    </div>
+    <div class="process-step">
+      <div class="process-step-num">02</div>
+      <h3>Pre-Inspection</h3>
+      <p>We assess your vehicle's condition and document everything before we begin — complete transparency.</p>
+    </div>
+    <div class="process-step">
+      <div class="process-step-num">03</div>
+      <h3>Ninja at Work</h3>
+      <p>Our specialists execute the detail with obsessive attention to every panel, gap, and surface.</p>
+    </div>
+    <div class="process-step">
+      <div class="process-step-num">04</div>
+      <h3>Final Review</h3>
+      <p>Walk-around inspection together. We don't hand over the keys until you're speechless.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section id="testimonials" class="testimonials-section">
+  <div class="section-label reveal">
+    <div class="section-label-line"></div>
+    <span class="section-label-text">Client Words</span>
+  </div>
+  <h2 class="section-title reveal">WHAT THEY <em>SAY</em></h2>
+
+  <div class="testimonials-grid reveal">
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">Brought my Model S in for the Elite Package. The paint looks better than the day I drove it off the lot. These guys are surgical in their precision.</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">JR</div>
+        <div class="author-info">
+          <strong>James R.</strong>
+          <span>Tesla Model S Owner</span>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">I've used 5 detailers in this city. Ninja Auto is on a different level entirely. My Porsche gets nothing but the best now — and that means only Ninja.</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">SM</div>
+        <div class="author-info">
+          <strong>Sofia M.</strong>
+          <span>Porsche 911 Owner</span>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">Ceramic coating applied flawlessly. Six months later and water still beads off like day one. The investment was absolutely worth every penny.</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">DK</div>
+        <div class="author-info">
+          <strong>David K.</strong>
+          <span>BMW M4 Owner</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+  <h2>READY TO TRANSFORM YOUR RIDE?</h2>
+  <p>Book today — slots fill fast. Your car deserves the Ninja treatment.</p>
+  <a href="tel:+15551234567" class="btn-white">
+    <span>📞</span>
+    <span>Call (555) 123-4567</span>
+  </a>
+  <br><br>
+  <a href="mailto:book@ninjaautodetailing.com" class="btn-white">
+    <span>✉</span>
+    <span>book@ninjaautodetailing.com</span>
+  </a>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="nav-logo" style="display:inline-flex;">
+        <div class="logo-icon">忍</div>
+        NINJA <span style="color:var(--red)">AUTO</span>
+      </a>
+      <p>Elite auto detailing for those who demand the best. Serving the American people since 2025.</p>
+      <a href="tel:+15551234567" class="phone-badge">
+        <span class="ph-icon">📞</span> (555) 123-4567
+      </a>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul>
+        <li><a href="#services">Express Detail</a></li>
+        <li><a href="#services">Full Detail</a></li>
+        <li><a href="#services">Ceramic Coating</a></li>
+        <li><a href="#services">Paint Correction</a></li>
+        <li><a href="#services">PPF Installation</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Our Work</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Blog</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Hours</h4>
+      <ul>
+        <li><a href="#">Mon–Fri: 8am–6pm</a></li>
+        <li><a href="#">Saturday: 9am–5pm</a></li>
+        <li><a href="#">Sunday: Closed</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Ninja Auto Detailing. All rights reserved.</p>
+    <div class="footer-socials">
+      <a href="#" aria-label="Instagram">IG</a>
+      <a href="#" aria-label="Facebook">FB</a>
+      <a href="#" aria-label="TikTok">TK</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const dot = document.getElementById('cursorDot');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animateCursor() {
+    if (dot) { dot.style.left = mx + 'px'; dot.style.top = my + 'px'; }
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) *.12;
+    if (ring) { ring.style.left = rx + 'px'; ring.style.top = ry + 'px'; }
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+
+  // Hover effect on interactive elements
+  document.querySelectorAll('a, button, .service-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      if (ring) { ring.style.width = '52px'; ring.style.height = '52px'; ring.style.borderColor = 'rgba(200,16,46,0.9)'; }
+    });
+    el.addEventListener('mouseleave', () => {
+      if (ring) { ring.style.width = '36px'; ring.style.height = '36px'; ring.style.borderColor = 'rgba(200,16,46,0.6)'; }
+    });
+  });
+
+  // Nav scroll
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Hamburger
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+  });
+  function closeMobile() {
+    hamburger.classList.remove('open');
+    mobileMenu.classList.remove('open');
+  }
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

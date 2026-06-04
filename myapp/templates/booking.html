@@ -1,0 +1,347 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Book Your Appointment – Ninja Auto Detailing</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'myapp/styles.css' %}">
+
+<style>
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+  }
+
+  .booking-wrapper {
+    max-width: 1000px;
+    margin: 6rem auto;
+    padding: 2rem;
+  }
+
+  .booking-title {
+    font-family: 'Bebas Neue';
+    font-size: 4rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+
+  /* Service field */
+  .form-section {
+    margin-bottom: 2rem;
+  }
+
+  /* Selected service card */
+  .selected-service {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 1.2rem;
+    border-left: 3px solid var(--red);
+  }
+
+  /* Calendar */
+  .calendar-wrapper {
+    background: var(--deep);
+    padding: 2rem;
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .calendar-title {
+    font-family: 'Bebas Neue';
+    font-size: 2.5rem;
+  }
+
+  .cal-nav {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: 0.2s;
+  }
+
+  .cal-nav:hover {
+    border-color: var(--red);
+    box-shadow: 0 0 12px var(--red-glow);
+  }
+
+  #calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 2rem;
+  }
+
+  .calendar-day {
+    padding: 1rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 1.1rem;
+  }
+
+  .calendar-day:hover {
+    border-color: var(--red);
+    box-shadow: 0 0 12px var(--red-glow);
+  }
+
+  .calendar-day.disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+
+  .calendar-day.booked {
+    background: #2a2a2a;
+    color: #777;
+  }
+
+  .calendar-day.available::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--red);
+    border-radius: 50%;
+    display: block;
+    margin: 6px auto 0;
+  }
+
+  .calendar-day.selected {
+    background: var(--red);
+    border-color: var(--red);
+  }
+
+  /* Slots */
+  .slots-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .slot-btn {
+    padding: 0.9rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--white);
+    cursor: pointer;
+    text-align: center;
+    transition: 0.2s;
+  }
+
+  .slot-btn:hover {
+    border-color: var(--red);
+    box-shadow: 0 0 12px var(--red-glow);
+  }
+
+  .slot-btn.selected {
+    background: var(--red);
+    border-color: var(--red);
+  }
+
+  .slot-btn.booked {
+    background: #3a0000;
+    border-color: #550000;
+    color: #aa7777;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  /* Submit */
+  .submit-btn {
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+    background: var(--red);
+    color: var(--white);
+    border: none;
+    font-family: 'Rajdhani';
+    font-size: 1.2rem;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .submit-btn:hover {
+    background: #a80e26;
+    box-shadow: 0 0 24px var(--red-glow);
+  }
+</style>
+</head>
+
+<body>
+
+<div class="booking-wrapper">
+
+  <h1 class="booking-title">Book Your Appointment</h1>
+
+  <!-- Editable dropdown, prefilled if service was selected -->
+  <div class="form-section">
+      <label for="id_service" style="font-size: 1.2rem; font-weight: 600;">Service</label>
+      {{ form.service }}
+  </div>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <!-- Calendar -->
+    <div class="calendar-wrapper">
+
+      <div class="calendar-header">
+        <h2 id="month-label" class="calendar-title"></h2>
+        <button id="next-month" class="cal-nav">Next ›</button>
+      </div>
+
+      <div id="calendar"></div>
+
+      <div id="slots-container" class="slots-container">
+        <p style="color: var(--muted); margin-top: 1rem;">Select a date to see available time slots.</p>
+      </div>
+
+      <input type="hidden" name="date" id="selected-date">
+      <input type="hidden" name="time_slot" id="selected-slot">
+    </div>
+
+    <button type="submit" class="submit-btn">Confirm Booking</button>
+  </form>
+
+</div>
+
+<script>
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
+const today = new Date();
+today.setHours(0,0,0,0);
+
+const defaultTimes = [
+    "09:00", "10:00", "11:00", "12:00",
+    "13:00", "14:00", "15:00", "16:00", "17:00"
+];
+
+document.getElementById("next-month").addEventListener("click", () => {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    loadCalendar();
+});
+
+function loadCalendar() {
+    fetch("/booked-dates/")
+        .then(res => res.json())
+        .then(data => {
+            renderCalendar(data.fully_booked, data.available);
+        });
+}
+
+function renderCalendar(fullyBooked, available) {
+    const calendarEl = document.getElementById("calendar");
+    calendarEl.innerHTML = "";
+
+    const monthLabel = document.getElementById("month-label");
+    const monthName = new Date(currentYear, currentMonth).toLocaleString("en-US", { month: "long" });
+    monthLabel.textContent = `${monthName} ${currentYear}`;
+
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        calendarEl.appendChild(empty);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const dateObj = new Date(dateStr);
+
+        const cell = document.createElement("div");
+        cell.classList.add("calendar-day");
+        cell.textContent = day;
+
+        if (dateObj < today) {
+            cell.classList.add("disabled");
+        }
+
+        if (fullyBooked.includes(dateStr)) {
+            cell.classList.add("booked");
+        }
+
+        if (available.includes(dateStr)) {
+            cell.classList.add("available");
+        }
+
+        cell.addEventListener("click", () => {
+            if (cell.classList.contains("disabled") || cell.classList.contains("booked")) return;
+
+            document.querySelectorAll(".calendar-day").forEach(d => d.classList.remove("selected"));
+            cell.classList.add("selected");
+
+            document.getElementById("selected-date").value = dateStr;
+
+            loadSlots(dateStr);
+        });
+
+        calendarEl.appendChild(cell);
+    }
+}
+
+function loadSlots(date) {
+    fetch(`/available-slots/?date=${date}`)
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("slots-container");
+            container.innerHTML = "";
+
+            let slots = data.slots;
+
+            if (slots.length === 0) {
+                defaultTimes.forEach(time => {
+                    const btn = document.createElement("button");
+                    btn.className = "slot-btn booked";
+                    btn.textContent = time;
+                    btn.disabled = true;
+                    container.appendChild(btn);
+                });
+                return;
+            }
+
+            slots.forEach(slot => {
+                const btn = document.createElement("button");
+                btn.className = "slot-btn";
+                btn.textContent = slot.time;
+
+                if (slot.booked) {
+                    btn.disabled = true;
+                    btn.classList.add("booked");
+                }
+
+                btn.addEventListener("click", () => {
+                    document.querySelectorAll(".slot-btn").forEach(b => b.classList.remove("selected"));
+                    btn.classList.add("selected");
+                    document.getElementById("selected-slot").value = slot.time;
+                });
+
+                container.appendChild(btn);
+            });
+        });
+}
+
+loadCalendar();
+</script>
+
+</body>
+</html>

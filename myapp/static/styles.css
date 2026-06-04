@@ -1,0 +1,27 @@
+.service-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.service-card {
+  cursor: pointer;
+  border-radius: 14px;
+  padding: 24px;
+  background: #ffffff;
+  transition: 
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  background-color: #fafafa;
+}
+
+.service-card:active {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
