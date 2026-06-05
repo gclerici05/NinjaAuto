@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Ninja Auto Detailing{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --deep: #111111;
+    --panel: #161616;
+    --red: #c8102e;
+    --red-glow: rgba(200,16,46,0.35);
+    --gold: #d4a843;
+    --white: #f5f5f0;
+    --muted: #b2b2aa;
+    --border: rgba(255,255,255,0.10);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 400;
+    overflow-x: hidden;
+    cursor: none;
+  }
+  .cursor { position: fixed; top: 0; left: 0; z-index: 9999; pointer-events: none; }
+  .cursor-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; position: absolute; transform: translate(-50%,-50%); }
+  .cursor-ring { width: 36px; height: 36px; border: 1px solid rgba(200,16,46,0.6); border-radius: 50%; position: absolute; transform: translate(-50%,-50%); transition: all 0.15s ease; }
+  @media (hover: none) { .cursor { display: none; } body { cursor: auto; } }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.4rem 4vw;
+    background: rgba(10,10,10,0.97);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+    letter-spacing: 0.12em; color: var(--white);
+    text-decoration: none; display: flex; align-items: center; gap: 0.6rem;
+  }
+  .nav-logo span { color: var(--red); }
+  .logo-icon {
+    width: 32px; height: 32px; border: 2px solid var(--red); border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; transform: rotate(-5deg);
+  }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    font-family: 'Rajdhani', sans-serif; font-weight: 500; font-size: 0.88rem;
+    letter-spacing: 0.16em; text-transform: uppercase; color: #a0a098;
+    text-decoration: none; transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta { background: var(--red) !important; color: var(--white) !important; padding: 0.5rem 1.4rem; }
+  .nav-cta:hover { background: #a80e26 !important; }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+  .hamburger span { width: 24px; height: 2px; background: var(--white); transition: all 0.3s; display: block; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-menu {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 90;
+    background: rgba(10,10,10,0.98);
+    flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; letter-spacing: 0.1em; color: var(--white); text-decoration: none; transition: color 0.2s; }
+  .mobile-menu a:hover { color: var(--red); }
+  @media (max-width: 768px) { .nav-links { display: none; } .hamburger { display: flex; } }
+
+  .page-content { padding-top: 80px; }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    background: var(--red); color: var(--white);
+    padding: 1rem 2.2rem; font-family: 'Rajdhani', sans-serif;
+    font-weight: 700; font-size: 0.9rem; letter-spacing: 0.2em;
+    text-transform: uppercase; text-decoration: none; border: none; cursor: pointer;
+    transition: all 0.3s;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  }
+  .btn-primary:hover { background: #a80e26; box-shadow: 0 8px 40px var(--red-glow); transform: translateY(-2px); }
+
+  footer {
+    background: var(--deep); border-top: 1px solid var(--border);
+    padding: 2rem 6vw; margin-top: 6rem;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+  }
+  footer p { font-size: 0.88rem; color: var(--muted); }
+  .footer-socials { display: flex; gap: 1rem; }
+  .footer-socials a {
+    width: 34px; height: 34px; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: all 0.3s;
+  }
+  .footer-socials a:hover { border-color: var(--red); color: var(--white); }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<div class="cursor">
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+</div>
+
+<nav id="navbar">
+  <a href="{% url 'home' %}" class="nav-logo">
+    <div class="logo-icon">忍</div>
+    NINJA <span>AUTO</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="{% url 'home' %}#services">Services</a></li>
+    <li><a href="{% url 'home' %}#why">Why Us</a></li>
+    <li><a href="{% url 'home' %}#process">Process</a></li>
+    <li><a href="{% url 'home' %}#testimonials">Reviews</a></li>
+    <li><a href="{% url 'booking' %}" class="nav-cta">Book Now</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="{% url 'home' %}#services" onclick="closeMobile()">Services</a>
+  <a href="{% url 'home' %}#why" onclick="closeMobile()">Why Us</a>
+  <a href="{% url 'home' %}#process" onclick="closeMobile()">Process</a>
+  <a href="{% url 'home' %}#testimonials" onclick="closeMobile()">Reviews</a>
+  <a href="{% url 'booking' %}" onclick="closeMobile()" style="color:var(--red)">Book Now</a>
+</div>
+
+<div class="page-content">
+  {% block content %}{% endblock %}
+</div>
+
+<footer>
+  <p>© 2026 Ninja Auto Detailing. All rights reserved.</p>
+  <div class="footer-socials">
+    <a href="#" aria-label="Instagram">IG</a>
+    <a href="#" aria-label="Facebook">FB</a>
+    <a href="#" aria-label="TikTok">TK</a>
+  </div>
+</footer>
+
+<script>
+  const dot=document.getElementById('cursorDot');
+  const ring=document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  function animateCursor(){
+    if(dot){dot.style.left=mx+'px';dot.style.top=my+'px';}
+    rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12;
+    if(ring){ring.style.left=rx+'px';ring.style.top=ry+'px';}
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+  document.querySelectorAll('a,button').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{if(ring){ring.style.width='52px';ring.style.height='52px';ring.style.borderColor='rgba(200,16,46,0.9)';}});
+    el.addEventListener('mouseleave',()=>{if(ring){ring.style.width='36px';ring.style.height='36px';ring.style.borderColor='rgba(200,16,46,0.6)';}});
+  });
+  const hamburger=document.getElementById('hamburger');
+  const mobileMenu=document.getElementById('mobileMenu');
+  hamburger.addEventListener('click',()=>{hamburger.classList.toggle('open');mobileMenu.classList.toggle('open');});
+  function closeMobile(){hamburger.classList.remove('open');mobileMenu.classList.remove('open');}
+  const reveals=document.querySelectorAll('.reveal');
+  const observer=new IntersectionObserver((entries)=>{
+    entries.forEach((entry,i)=>{
+      if(entry.isIntersecting){setTimeout(()=>entry.target.classList.add('visible'),i*80);observer.unobserve(entry.target);}
+    });
+  },{threshold:0.12});
+  reveals.forEach(el=>observer.observe(el));
+</script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

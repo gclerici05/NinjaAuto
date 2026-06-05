@@ -6,7 +6,7 @@ from .forms import AppointmentForm
 import json
 
 def home(request):
-    return render(request, 'home.html')
+    return render(request, 'home_update.html')
 
 def booking(request):
     if request.method == 'POST':

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Booking Confirmed – Ninja Auto Detailing{% endblock %}
+
+{% block extra_head %}
+<style>
+  .success-section {
+    min-height: 80vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 4rem 6vw;
+  }
+  .success-card {
+    max-width: 560px; width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 3px solid #22c55e;
+    padding: 3.5rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .success-card::before {
+    content: '忍'; font-family: 'Bebas Neue', sans-serif;
+    font-size: 14rem; color: transparent;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.03);
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    pointer-events: none; user-select: none;
+    line-height: 1;
+  }
+  .success-icon {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(34,197,94,0.1);
+    border: 2px solid #22c55e;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 2rem;
+    font-size: 2rem;
+    position: relative;
+    animation: popIn 0.5s ease forwards;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .success-card h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem; letter-spacing: 0.08em;
+    margin-bottom: 0.5rem; position: relative;
+  }
+  .success-card h1 span { color: #22c55e; }
+  .success-card p {
+    color: var(--muted); font-size: 1rem; line-height: 1.75;
+    margin-bottom: 2.5rem; position: relative;
+  }
+  .success-divider {
+    height: 1px; background: var(--border); margin: 2rem 0;
+  }
+  .success-note {
+    background: rgba(200,16,46,0.06);
+    border: 1px solid rgba(200,16,46,0.2);
+    padding: 1.2rem 1.5rem;
+    font-size: 0.92rem; color: var(--muted);
+    line-height: 1.7; margin-bottom: 2rem;
+    text-align: left; position: relative;
+  }
+  .success-note strong { color: var(--white); }
+  .success-actions { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; position: relative; }
+  .btn-outline {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    border: 1px solid var(--border); color: var(--white);
+    padding: 0.9rem 2rem; font-family: 'Rajdhani', sans-serif;
+    font-weight: 500; font-size: 0.88rem; letter-spacing: 0.15em;
+    text-transform: uppercase; text-decoration: none; transition: all 0.3s;
+  }
+  .btn-outline:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); }
+
+  @media (max-width: 600px) {
+  .success-section { padding: 2rem 5vw; align-items: flex-start; padding-top: 3rem; }
+  .success-card { padding: 2.5rem 1.5rem; }
+  .success-card h1 { font-size: 2.2rem; }
+  .success-actions { flex-direction: column; }
+  .success-actions a { width: 100%; justify-content: center; }
+  .btn-primary { clip-path: none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="success-section">
+  <div class="success-card">
+    <div class="success-icon">✓</div>
+    <h1>BOOKING <span>CONFIRMED</span></h1>
+    <p>Your appointment has been locked in. We'll be in touch shortly to confirm the details.</p>
+
+    <div class="success-divider"></div>
+
+    <div class="success-note">
+      <strong>What happens next?</strong><br>
+      Our team will review your booking and send a confirmation to your email within the hour. Please arrive 5 minutes before your scheduled time.
+    </div>
+
+    <div class="success-actions">
+      <a href="{% url 'booking' %}" class="btn-primary">Book Another →</a>
+      <a href="{% url 'home' %}" class="btn-outline">← Back to Home</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

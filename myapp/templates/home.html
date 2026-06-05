@@ -374,6 +374,7 @@
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5px;
     background: var(--border);
+    align-items: stretch;
   }
 
   .service-card {
@@ -383,7 +384,11 @@
     overflow: hidden;
     transition: background 0.4s;
     cursor: default;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
+
   .service-card::before {
     content: '';
     position: absolute; bottom: 0; left: 0; right: 0;
@@ -439,7 +444,7 @@
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.1rem;
     letter-spacing: 0.1em;
-    color: var(--gold);
+    color: var(--white);
   }
   .service-price span { font-family: 'Rajdhani', sans-serif; font-size: 0.82rem; font-weight: 400; color: var(--muted); }
 
@@ -926,58 +931,92 @@
   <p class="section-desc reveal">Every package is executed with surgical precision. No shortcuts. No compromises.</p>
 
   <div class="services-grid reveal">
-    <a href="{% url 'booking' %}?service= Express Detail" class="service-link"> 
+    <a href="{% url 'booking' %}?service= Standard Exterior Detail" class="service-link"> 
     <div class="service-card">
       <div class="service-number">01</div>
       <div class="service-icon">✦</div>
-      <h3 class="service-title">Express Detail</h3>
-      <p class="service-desc">Full exterior hand wash, clay bar treatment, tire dressing, and interior vacuum with surface wipe-down.</p>
-      <div class="service-price">FROM $89 <span>/ per vehicle</span></div>
+      <h3 class="service-title">Standard Exterior Detail</h3>
+      <p class="service-desc"> A quick exterior, spot-free car wash: great for removing dirt, dust, hard road grime.</p>
+      <div class="service-price">FROM $49.99 <span>/ per vehicle</span></div>
     </div>
      </a>
-     <a href="{% url 'booking' %}?service= Full Detail" class="service-link">
+    <div class="services-grid reveal">
+    <a href="{% url 'booking' %}?service= Standard Interior Detail" class="service-link"> 
     <div class="service-card">
       <div class="service-number">02</div>
-      <div class="service-icon">◈</div>
-      <h3 class="service-title">Full Detail</h3>
-      <p class="service-desc">Complete interior shampooing, leather conditioning, full exterior decontamination, and machine polishing.</p>
-      <div class="service-price">FROM $249 <span>/ per vehicle</span></div>
+      <div class="service-icon">✦</div>
+      <h3 class="service-title">Standard Interior Detail</h3>
+      <p class="service-desc"> Dirty dashboard? crumb-filled seats? Dusty carpets? Chose our interior detail to give your car a fresh, clean look.</p>
+      <div class="service-price">FROM $59.99 <span>/ per vehicle</span></div>
     </div>
-    </a>
-    <a href="{% url 'booking' %}?service= Ceramic Coating" class="service-link">
+     </a>
+    <a href="{% url 'booking' %}?service= Standard Express Detail" class="service-link"> 
     <div class="service-card">
       <div class="service-number">03</div>
+      <div class="service-icon">✦</div>
+      <h3 class="service-title">Standard Express Detail</h3>
+      <p class="service-desc">Full exterior hand wash, and interior vacuum with surface wipe-down.</p>
+      <div class="service-price">FROM $99.99 <span>/ per vehicle</span></div>
+    </div>
+    </a>
+
+    <a href="{% url 'booking' %}?service= Premium Care Detail" class="service-link">
+    <div class="service-card">
+      <div class="service-number">04</div>
+      <div class="service-icon">◈</div>
+      <h3 class="service-title">Premium Care Detail</h3>
+      <p class="service-desc">Complete interior shampooing, leather conditioning, rim cleaning and tire dressing. For a full exterior decontamination, and machine polished look.</p>
+      <div class="service-price">FROM $119.99 TO $169.99 <span>/ varies with vehicle size and conditions</span></div>
+    </div>
+    </a>
+
+    <a href="{% url 'booking' %}?service= Elite Package Detail" class="service-link">
+    <div class="service-card">
+      <div class="service-number">05</div>
+      <div class="service-icon">⬟</div>
+      <h3 class="service-title">Elite Package Detail</h3>
+      <p class="service-desc">The ultimate transformation: Gentle Foam Cleaning + Ceramic Coating + Rim Dressing and Shining + Full Interior Restoration.</p>
+      <div class="service-price">FROM $159.99 TO $219.99 <span>/ varies with vehicle size and conditions</span></div>
+    </div>
+    </a>
+
+    <a href="{% url 'booking' %}?service= Ceramic Coating" class="service-link">
+    <div class="service-card">
+      <div class="service-number">06</div>
       <div class="service-icon">⬡</div>
       <h3 class="service-title">Ceramic Coating</h3>
       <p class="service-desc">Professional-grade nano-ceramic coating providing up to 5 years of hydrophobic, UV-blocking protection.</p>
-      <div class="service-price">FROM $699 <span>/ per vehicle</span></div>
+      <div class="service-price"> COMING SOON </div>
     </div>
     </a>
+
     <a href="{% url 'booking' %}?service= Paint Correction" class="service-link">
     <div class="service-card">
-      <div class="service-number">04</div>
+      <div class="service-number">07</div>
       <div class="service-icon">◇</div>
       <h3 class="service-title">Paint Correction</h3>
       <p class="service-desc">Multi-stage machine polishing to eliminate swirl marks, light scratches, oxidation, and water spots.</p>
-      <div class="service-price">FROM $399 <span>/ per vehicle</span></div>
+      <div class="service-price"> COMING SOON </div>
     </div>
     </a>
+
     <a href="{% url 'booking' %}?service= PPF Installation" class="service-link">
     <div class="service-card">
-      <div class="service-number">05</div>
+      <div class="service-number">08</div>
       <div class="service-icon">▣</div>
       <h3 class="service-title">PPF Installation</h3>
       <p class="service-desc">Clear urethane film applied to high-impact areas, offering self-healing protection against rock chips.</p>
-      <div class="service-price">FROM $499 <span>/ per panel</span></div>
+      <div class="service-price"> COMING SOON </div>
     </div>
     </a>
-    <a href="{% url 'booking' %}?service= Elite Package" class="service-link">
+
+    <a href="{% url 'booking' %}?service= Ultimate Package" class="service-link">
     <div class="service-card">
-      <div class="service-number">06</div>
+      <div class="service-number">09</div>
       <div class="service-icon">⬟</div>
-      <h3 class="service-title">Elite Package</h3>
-      <p class="service-desc">The ultimate transformation: paint correction + ceramic coating + full interior restoration. Reserved for perfectionists.</p>
-      <div class="service-price">FROM $1,299 <span>/ per vehicle</span></div>
+      <h3 class="service-title">Ultimate Package</h3>
+      <p class="service-desc">COMING SOON</p>
+      <div class="service-price"> COMING SOON </div>
     </div>
     </a>
   </div>
@@ -1115,14 +1154,14 @@
 <section class="cta-section" id="contact">
   <h2>READY TO TRANSFORM YOUR RIDE?</h2>
   <p>Book today — slots fill fast. Your car deserves the Ninja treatment.</p>
-  <a href="tel:+15551234567" class="btn-white">
+  <a href="tel:+19492997272" class="btn-white">
     <span>📞</span>
-    <span>Call (555) 123-4567</span>
+    <span>Call (949) 299-7272</span>
   </a>
   <br><br>
-  <a href="mailto:book@ninjaautodetailing.com" class="btn-white">
+  <a href="mailto:liam@ninjaautodetailingsd.com" class="btn-white">
     <span>✉</span>
-    <span>book@ninjaautodetailing.com</span>
+    <span>liam@ninjaautodetailingsd.com</span>
   </a>
 </section>
 
@@ -1135,8 +1174,8 @@
         NINJA <span style="color:var(--red)">AUTO</span>
       </a>
       <p>Elite auto detailing for those who demand the best. Serving the American people since 2025.</p>
-      <a href="tel:+15551234567" class="phone-badge">
-        <span class="ph-icon">📞</span> (555) 123-4567
+      <a href="tel:+19492997272" class="phone-badge">
+        <span class="ph-icon">📞</span> (949) 299-7272
       </a>
     </div>
     <div class="footer-col">

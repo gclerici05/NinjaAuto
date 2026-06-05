@@ -16,12 +16,11 @@ class Availability(models.Model):
 
 class Appointment(models.Model):
     SERVICE_CHOICES = [
-        ('express', 'Express Detail - $89'),
-        ('full', 'Full Detail - $249'),
-        ('ceramic', 'Ceramic Coating - $699'),
-        ('paint', 'Paint Correction - $399'),
-        ('ppf', 'PPF Installation - $499'),
-        ('elite', 'Elite Package - $1,299'),
+        ('exterior', 'Standard Exterior Detail - $49.99'),
+        ('interior', 'Standard Interior Detail - $59.99'),
+        ('express', 'Standard Express Detail - $99.99'),
+        ('premium', 'Premium Care Detail - $119.99–$169.99'),
+        ('elite', 'Elite Package Detail - $159.99–$219.99'),
     ]
 
     name = models.CharField(max_length=100)

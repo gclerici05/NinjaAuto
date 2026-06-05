@@ -21,10 +21,9 @@ from myapp import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("", views.home),
-    path("booking/", views.booking, name="booking"),
-    path("booking/success/", views.booking_success, name="booking_success"),
-    path('available-slots/', views.available_slots, name='available_slots'),
-    path('booked-dates/', views.booked_dates, name='booked_dates'),
- 
+    path('', views.home, name='home'),          # ← name='home' is required
+    path('booking/', views.booking, name='booking'),
+    path('booking/success/', views.booking_success, name='booking_success'),
+    path('api/slots/', views.available_slots, name='available_slots'),
+    path('api/booked-dates/', views.booked_dates, name='booked_dates'),
 ]
