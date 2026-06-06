@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard – Ninja Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a; --deep: #111; --panel: #161616; --panel2: #1c1c1c;
+    --red: #c8102e; --red-glow: rgba(200,16,46,0.35);
+    --white: #f5f5f0; --muted: #b2b2aa; --border: rgba(255,255,255,0.10);
+    --green: #22c55e; --gold: #d4a843;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--black); color: var(--white); font-family: 'Rajdhani', sans-serif; font-weight: 400; min-height: 100vh; }
+
+  /* ── Top Bar ── */
+  .topbar {
+    background: var(--deep); border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.6rem; }
+  .topbar-logo .logo-icon { width: 28px; height: 28px; border: 2px solid var(--red); border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transform: rotate(-5deg); }
+  .topbar-logo span { color: var(--red); }
+  .topbar-logo .admin-badge { font-family: 'Rajdhani', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; background: rgba(200,16,46,0.12); border: 1px solid rgba(200,16,46,0.3); color: var(--red); padding: 0.2rem 0.6rem; margin-left: 0.5rem; }
+  .topbar-right { display: flex; align-items: center; gap: 1rem; }
+  .manager-name { font-size: 0.88rem; color: var(--muted); }
+  .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 1rem; font-family: 'Rajdhani', sans-serif; font-weight: 500; font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── Layout ── */
+  .dashboard-layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 58px); }
+  @media (max-width: 800px) { .dashboard-layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
+
+  /* ── Sidebar ── */
+  .sidebar { background: var(--deep); border-right: 1px solid var(--border); padding: 1.5rem 0; }
+  .sidebar-section { padding: 0 1.2rem; margin-bottom: 0.3rem; }
+  .sidebar-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: #555; padding: 0.8rem 0.8rem 0.4rem; }
+  .sidebar-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.7rem 0.8rem; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.06em; color: var(--muted); cursor: pointer; border-radius: 2px; transition: all 0.2s; border: 1px solid transparent; }
+  .sidebar-item:hover { color: var(--white); background: rgba(255,255,255,0.04); }
+  .sidebar-item.active { color: var(--white); background: rgba(200,16,46,0.1); border-color: rgba(200,16,46,0.2); }
+  .sidebar-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+  .sidebar-divider { height: 1px; background: var(--border); margin: 1rem 1.2rem; }
+
+  /* ── Main ── */
+  .main { padding: 2rem; overflow-x: hidden; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── Stats ── */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-box { background: var(--panel); border: 1px solid var(--border); border-left: 2px solid var(--red); padding: 1.2rem 1.5rem; }
+  .stat-box .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 0.05em; line-height: 1; }
+  .stat-box .stat-val.green { color: var(--green); }
+  .stat-box .stat-val.gold { color: var(--gold); }
+  .stat-box .stat-lbl { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 0.3rem; }
+
+  /* ── Section header ── */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem; }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.08em; }
+  .section-title span { color: var(--red); }
+
+  /* ── Filter bar ── */
+  .filter-bar { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .filter-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 1rem; font-family: 'Rajdhani', sans-serif; font-weight: 500; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--white); }
+  .filter-btn.active { background: var(--red); border-color: var(--red); color: var(--white); }
+
+  /* ── Appointment cards ── */
+  .appt-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+  .appt-card { background: var(--panel); padding: 1.2rem 1.5rem; display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: start; transition: background 0.2s; }
+  .appt-card:hover { background: var(--panel2); }
+  .appt-top { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+  .appt-name { font-weight: 700; font-size: 1rem; letter-spacing: 0.05em; }
+  .appt-service { background: rgba(200,16,46,0.1); border: 1px solid rgba(200,16,46,0.2); color: var(--red); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.2rem 0.6rem; }
+  .appt-details { display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.88rem; color: var(--muted); }
+  .appt-details span { display: flex; align-items: center; gap: 0.3rem; }
+  .appt-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+  .btn-sm { padding: 0.4rem 0.9rem; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .btn-confirm { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
+  .btn-confirm:hover { background: rgba(34,197,94,0.2); }
+  .btn-cancel { background: rgba(200,16,46,0.08); border: 1px solid rgba(200,16,46,0.2); color: var(--red); }
+  .btn-cancel:hover { background: rgba(200,16,46,0.18); }
+
+  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+  .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+  .empty-state p { font-size: 0.95rem; }
+
+  /* ── Forms ── */
+  .avail-form { background: var(--panel); border: 1px solid var(--border); padding: 2rem; max-width: 600px; }
+  .avail-form h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.08em; margin-bottom: 1.5rem; }
+  .avail-form h3 span { color: var(--red); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .field label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+  .field input { background: var(--deep); border: 1px solid var(--border); color: var(--white); padding: 0.75rem 0.9rem; font-family: 'Rajdhani', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.3s; width: 100%; }
+  .field input:focus { border-color: var(--red); }
+  .btn-add { background: var(--red); color: var(--white); border: none; padding: 0.85rem 2rem; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); margin-top: 0.5rem; }
+  .btn-add:hover { background: #a80e26; }
+  .btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Day / Time chips ── */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.3rem; }
+  .day-chip {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: var(--deep); border: 1px solid var(--border);
+    color: var(--muted); padding: 0.4rem 0.9rem;
+    font-family: 'Rajdhani', sans-serif; font-size: 0.82rem;
+    font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s; user-select: none;
+  }
+  .day-chip:has(input:checked) { background: rgba(200,16,46,0.12); border-color: rgba(200,16,46,0.4); color: var(--white); }
+  .day-chip input { display: none; }
+
+  /* ── Availability list ── */
+  .avail-list { margin-top: 2rem; max-width: 600px; }
+  .avail-list h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.08em; margin-bottom: 1rem; }
+  .avail-item { background: var(--panel); border: 1px solid var(--border); padding: 0.8rem 1.2rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1px; }
+  .avail-item-info { display: flex; gap: 1.5rem; font-size: 0.92rem; }
+  .avail-item-date { font-weight: 600; color: var(--white); }
+  .avail-item-time { color: var(--muted); }
+  .avail-item-status { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.2rem 0.6rem; }
+  .status-open { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: var(--green); }
+  .status-booked { background: rgba(200,16,46,0.1); border: 1px solid rgba(200,16,46,0.2); color: var(--red); }
+
+  /* ── Messages ── */
+  .msg-inline { font-size: 0.85rem; padding: 0.6rem 0.9rem; margin-top: 0.8rem; display: none; }
+  .msg-inline.success { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); color: var(--green); }
+  .msg-inline.error { background: rgba(200,16,46,0.08); border: 1px solid rgba(200,16,46,0.25); color: #ff6b6b; }
+  .loading { color: var(--muted); font-size: 0.9rem; font-style: italic; padding: 1rem 0; }
+
+  /* ── Progress bar for bulk ── */
+  .progress-wrap { margin-top: 0.8rem; display: none; }
+  .progress-label { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.4rem; letter-spacing: 0.05em; }
+  .progress-bar { height: 4px; background: var(--border); position: relative; }
+  .progress-fill { height: 100%; background: var(--red); width: 0%; transition: width 0.2s; }
+
+  @media (max-width: 600px) {
+    .main { padding: 1rem; }
+    .appt-card { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-icon">忍</div>
+    NINJA <span>AUTO</span>
+    <div class="admin-badge">Admin</div>
+  </div>
+  <div class="topbar-right">
+    <span class="manager-name" id="managerNameDisplay"></span>
+    <button class="btn-logout" onclick="logout()">Log Out</button>
+  </div>
+</div>
+
+<div class="dashboard-layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-label">Management</div>
+    <div class="sidebar-section">
+      <div class="sidebar-item active" onclick="showPage('appointments', this)">
+        <span class="icon">📋</span> Appointments
+      </div>
+      <div class="sidebar-item" onclick="showPage('availability', this)">
+        <span class="icon">📅</span> Availability
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label">Account</div>
+    <div class="sidebar-section">
+      <div class="sidebar-item" onclick="showPage('settings', this)">
+        <span class="icon">⚙</span> Settings
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- ── Appointments Page ── -->
+    <div class="page active" id="page-appointments">
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-val" id="statTotal">—</div><div class="stat-lbl">Total Bookings</div></div>
+        <div class="stat-box"><div class="stat-val green" id="statToday">—</div><div class="stat-lbl">Today</div></div>
+        <div class="stat-box"><div class="stat-val gold" id="statUpcoming">—</div><div class="stat-lbl">Upcoming</div></div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">ALL <span>APPOINTMENTS</span></div>
+        <div class="filter-bar">
+          <button class="filter-btn active" onclick="filterAppts('all', this)">All</button>
+          <button class="filter-btn" onclick="filterAppts('today', this)">Today</button>
+          <button class="filter-btn" onclick="filterAppts('upcoming', this)">Upcoming</button>
+        </div>
+      </div>
+
+      <div id="apptList" class="appt-list">
+        <div class="loading">Loading appointments...</div>
+      </div>
+    </div>
+
+    <!-- ── Availability Page ── -->
+    <div class="page" id="page-availability">
+      <div class="section-title" style="margin-bottom:1.5rem;">MANAGE <span style="color:var(--red)">AVAILABILITY</span></div>
+
+      <!-- Bulk Generator -->
+      <div class="avail-form" style="margin-bottom:1.5px;">
+        <h3>BULK <span>GENERATOR</span></h3>
+
+        <div class="form-row">
+          <div class="field">
+            <label>From Date</label>
+            <input type="date" id="bulkFrom">
+          </div>
+          <div class="field">
+            <label>To Date</label>
+            <input type="date" id="bulkTo">
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:1rem;">
+          <label style="margin-bottom:0.5rem;display:block;">Days of Week</label>
+          <div class="chip-group" id="dayChips">
+            <label class="day-chip"><input type="checkbox" value="1"> Mon</label>
+            <label class="day-chip"><input type="checkbox" value="2"> Tue</label>
+            <label class="day-chip"><input type="checkbox" value="3"> Wed</label>
+            <label class="day-chip"><input type="checkbox" value="4"> Thu</label>
+            <label class="day-chip"><input type="checkbox" value="5"> Fri</label>
+            <label class="day-chip"><input type="checkbox" value="6"> Sat</label>
+            <label class="day-chip"><input type="checkbox" value="0"> Sun</label>
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:1rem;">
+          <label style="margin-bottom:0.5rem;display:block;">Time Slots</label>
+          <div class="chip-group" id="timeChips">
+            <label class="day-chip"><input type="checkbox" value="08:00"> 8 AM</label>
+            <label class="day-chip"><input type="checkbox" value="09:00"> 9 AM</label>
+            <label class="day-chip"><input type="checkbox" value="10:00"> 10 AM</label>
+            <label class="day-chip"><input type="checkbox" value="11:00"> 11 AM</label>
+            <label class="day-chip"><input type="checkbox" value="12:00"> 12 PM</label>
+            <label class="day-chip"><input type="checkbox" value="13:00"> 1 PM</label>
+            <label class="day-chip"><input type="checkbox" value="14:00"> 2 PM</label>
+            <label class="day-chip"><input type="checkbox" value="15:00"> 3 PM</label>
+            <label class="day-chip"><input type="checkbox" value="16:00"> 4 PM</label>
+            <label class="day-chip"><input type="checkbox" value="17:00"> 5 PM</label>
+          </div>
+        </div>
+
+        <button class="btn-add" id="bulkBtn" onclick="bulkGenerate()">Generate Slots →</button>
+        <div class="progress-wrap" id="progressWrap">
+          <div class="progress-label" id="progressLabel">Adding slots...</div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+        <div class="msg-inline" id="bulkMsg"></div>
+      </div>
+
+      <!-- Single Slot -->
+      <div class="avail-form" style="margin-top:1.5px;">
+        <h3>ADD SINGLE <span>SLOT</span></h3>
+        <div class="form-row">
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="availDate">
+          </div>
+          <div class="field">
+            <label>Time</label>
+            <input type="time" id="availTime">
+          </div>
+        </div>
+        <button class="btn-add" onclick="addSlot()">Add Slot →</button>
+        <div class="msg-inline" id="availMsg"></div>
+      </div>
+
+      <!-- Existing Slots -->
+      <div class="avail-list">
+        <h3>EXISTING <span style="color:var(--red)">SLOTS</span></h3>
+        <div id="availList"><div class="loading">Loading slots...</div></div>
+      </div>
+    </div>
+
+    <!-- ── Settings Page ── -->
+    <div class="page" id="page-settings">
+      <div class="section-title" style="margin-bottom:1.5rem;">ACCOUNT <span style="color:var(--red)">SETTINGS</span></div>
+      <div class="avail-form" style="max-width:400px;">
+        <h3>CHANGE <span>PASSWORD</span></h3>
+        <div class="field" style="margin-bottom:1rem;">
+          <label>New Password</label>
+          <input type="password" id="newPassword" placeholder="Min. 8 characters">
+        </div>
+        <div class="field" style="margin-bottom:1rem;">
+          <label>Confirm Password</label>
+          <input type="password" id="confirmNewPassword" placeholder="Repeat password">
+        </div>
+        <button class="btn-add" onclick="changePassword()">Update Password →</button>
+        <div class="msg-inline" id="pwMsg"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let allAppointments = [];
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  window.addEventListener('load', () => { loadAppointments(); });
+
+  // ── Navigation ──
+  function showPage(name, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    el.classList.add('active');
+    if (name === 'availability') loadAvailability();
+  }
+
+  // ── Appointments ──
+  async function loadAppointments() {
+    try {
+      const res = await fetch('/api/manager/appointments/');
+      if (res.status === 401) { window.location.href = '/ninja-admin/login/'; return; }
+      const data = await res.json();
+      allAppointments = data.appointments || [];
+      updateStats();
+      renderAppointments(allAppointments);
+    } catch(e) {
+      document.getElementById('apptList').innerHTML = '<div class="loading">Failed to load appointments.</div>';
+    }
+  }
+
+  function updateStats() {
+    const today = allAppointments.filter(a => a.date === todayStr).length;
+    const upcoming = allAppointments.filter(a => a.date >= todayStr).length;
+    document.getElementById('statTotal').textContent = allAppointments.length;
+    document.getElementById('statToday').textContent = today;
+    document.getElementById('statUpcoming').textContent = upcoming;
+  }
+
+  function filterAppts(type, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (type === 'all') renderAppointments(allAppointments);
+    else if (type === 'today') renderAppointments(allAppointments.filter(a => a.date === todayStr));
+    else if (type === 'upcoming') renderAppointments(allAppointments.filter(a => a.date >= todayStr));
+  }
+
+  function renderAppointments(list) {
+    const container = document.getElementById('apptList');
+    if (!list.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No appointments found.</p></div>';
+      return;
+    }
+    container.innerHTML = list.map(a => `
+      <div class="appt-card" id="appt-${a.id}">
+        <div>
+          <div class="appt-top">
+            <span class="appt-name">${a.name}</span>
+            <span class="appt-service">${formatService(a.service)}</span>
+          </div>
+          <div class="appt-details">
+            <span>📅 ${formatDate(a.date)}</span>
+            <span>🕐 ${formatTime(a.time_slot)}</span>
+            <span>🚗 ${a.car_year} ${a.car_make} ${a.car_model}</span>
+            <span>📞 ${a.phone}</span>
+            <span>✉ ${a.email}</span>
+          </div>
+          ${a.notes ? `<div style="font-size:0.85rem;color:var(--muted);margin-top:0.5rem;font-style:italic;">"${a.notes}"</div>` : ''}
+        </div>
+        <div class="appt-actions">
+          <button class="btn-sm btn-confirm" onclick="sendConfirmation(${a.id}, this)">✉ Confirm</button>
+          <button class="btn-sm btn-cancel" onclick="cancelAppointment(${a.id})">✕ Cancel</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function sendConfirmation(id, btn) {
+    btn.textContent = 'Sending...'; btn.disabled = true;
+    try {
+      const res = await fetch(`/send-confirmation/${id}/`);
+      const data = await res.json();
+      btn.textContent = data.status === 'success' ? '✓ Sent' : '✕ Failed';
+      setTimeout(() => { btn.textContent = '✉ Confirm'; btn.disabled = false; }, 2500);
+    } catch(e) { btn.textContent = '✕ Error'; btn.disabled = false; }
+  }
+
+  async function cancelAppointment(id) {
+    if (!confirm('Cancel this appointment? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`/cancel-appointment/${id}/`);
+      const data = await res.json();
+      if (data.status === 'success') {
+        document.getElementById('appt-' + id)?.remove();
+        allAppointments = allAppointments.filter(a => a.id !== id);
+        updateStats();
+        if (!document.querySelector('.appt-card')) {
+          document.getElementById('apptList').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No appointments found.</p></div>';
+        }
+      }
+    } catch(e) { alert('Failed to cancel. Please try again.'); }
+  }
+
+  // ── Availability ──
+  async function loadAvailability() {
+    document.getElementById('availList').innerHTML = '<div class="loading">Loading slots...</div>';
+    try {
+      const res = await fetch('/api/booked-dates/');
+      const data = await res.json();
+      const allDates = [...data.available, ...data.fully_booked].sort();
+      if (!allDates.length) {
+        document.getElementById('availList').innerHTML = '<div class="loading">No slots added yet.</div>';
+        return;
+      }
+      const rows = await Promise.all(allDates.map(async date => {
+        const r = await fetch(`/api/slots/?date=${date}`);
+        const d = await r.json();
+        return (d.slots || []).map(s => ({ date, time: s.time, booked: s.booked, id: s.id }));
+      }));
+      const slots = rows.flat();
+      if (!slots.length) {
+        document.getElementById('availList').innerHTML = '<div class="loading">No slots found.</div>';
+        return;
+      }
+      document.getElementById('availList').innerHTML = slots.map(s => `
+        <div class="avail-item">
+          <div class="avail-item-info">
+            <span class="avail-item-date">${formatDate(s.date)}</span>
+            <span class="avail-item-time">${formatTime(s.time)}</span>
+          </div>
+          <span class="avail-item-status ${s.booked ? 'status-booked' : 'status-open'}">${s.booked ? 'Booked' : 'Open'}</span>
+        </div>
+      `).join('');
+    } catch(e) {
+      document.getElementById('availList').innerHTML = '<div class="loading">Failed to load slots.</div>';
+    }
+  }
+
+  async function addSlot() {
+    const date = document.getElementById('availDate').value;
+    const time = document.getElementById('availTime').value;
+    const msg = document.getElementById('availMsg');
+    if (!date || !time) { showInlineMsg(msg, 'Please select both a date and time.', 'error'); return; }
+
+    const formData = new FormData();
+    formData.append('date', date);
+    formData.append('time_slot', time);
+    formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+    try {
+      const res = await fetch('/api/manager/availability/', { method: 'POST', body: formData });
+      if (res.ok) {
+        showInlineMsg(msg, `Slot added: ${formatDate(date)} at ${formatTime(time)}`, 'success');
+        document.getElementById('availDate').value = '';
+        document.getElementById('availTime').value = '';
+        loadAvailability();
+      } else {
+        showInlineMsg(msg, 'Failed to add slot.', 'error');
+      }
+    } catch(e) { showInlineMsg(msg, 'Network error.', 'error'); }
+  }
+
+  // ── Bulk Generator ──
+  async function bulkGenerate() {
+    const from = document.getElementById('bulkFrom').value;
+    const to = document.getElementById('bulkTo').value;
+    const msg = document.getElementById('bulkMsg');
+    const btn = document.getElementById('bulkBtn');
+
+    const days = [...document.querySelectorAll('#dayChips input:checked')].map(c => parseInt(c.value));
+    const times = [...document.querySelectorAll('#timeChips input:checked')].map(c => c.value);
+
+    if (!from || !to) { showInlineMsg(msg, 'Please select a date range.', 'error'); return; }
+    if (from > to) { showInlineMsg(msg, 'From date must be before To date.', 'error'); return; }
+    if (!days.length) { showInlineMsg(msg, 'Please select at least one day.', 'error'); return; }
+    if (!times.length) { showInlineMsg(msg, 'Please select at least one time slot.', 'error'); return; }
+
+    // Build date list
+    const dates = [];
+    const cur = new Date(from + 'T00:00:00');
+    const end = new Date(to + 'T00:00:00');
+    while (cur <= end) {
+      if (days.includes(cur.getDay())) dates.push(cur.toISOString().split('T')[0]);
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    if (!dates.length) { showInlineMsg(msg, 'No matching days in that range.', 'error'); return; }
+
+    const total = dates.length * times.length;
+    btn.disabled = true;
+    btn.textContent = `Adding ${total} slots...`;
+
+    const progressWrap = document.getElementById('progressWrap');
+    const progressFill = document.getElementById('progressFill');
+    const progressLabel = document.getElementById('progressLabel');
+    progressWrap.style.display = 'block';
+    msg.style.display = 'none';
+
+    const csrf = getCookie('csrftoken');
+    let added = 0, failed = 0;
+
+    for (const date of dates) {
+      for (const time of times) {
+        const formData = new FormData();
+        formData.append('date', date);
+        formData.append('time_slot', time);
+        formData.append('csrfmiddlewaretoken', csrf);
+        try {
+          const res = await fetch('/api/manager/availability/', { method: 'POST', body: formData });
+          if (res.ok) added++; else failed++;
+        } catch(e) { failed++; }
+
+        const pct = Math.round(((added + failed) / total) * 100);
+        progressFill.style.width = pct + '%';
+        progressLabel.textContent = `Adding slots... ${added + failed} / ${total}`;
+      }
+    }
+
+    progressWrap.style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = 'Generate Slots →';
+    showInlineMsg(msg, `Done — ${added} slots added${failed ? `, ${failed} skipped (already exist)` : ''}.`, added > 0 ? 'success' : 'error');
+    loadAvailability();
+  }
+
+  // ── Settings ──
+  async function changePassword() {
+    const newPw = document.getElementById('newPassword').value;
+    const confirm = document.getElementById('confirmNewPassword').value;
+    const msg = document.getElementById('pwMsg');
+    if (newPw.length < 8) { showInlineMsg(msg, 'Password must be at least 8 characters.', 'error'); return; }
+    if (newPw !== confirm) { showInlineMsg(msg, 'Passwords do not match.', 'error'); return; }
+    try {
+      const res = await fetch('/api/manager/change-password/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ managerEmail: '__session__', newPassword: newPw })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        showInlineMsg(msg, 'Password updated successfully.', 'success');
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmNewPassword').value = '';
+      } else {
+        showInlineMsg(msg, 'Failed to update password.', 'error');
+      }
+    } catch(e) { showInlineMsg(msg, 'Network error.', 'error'); }
+  }
+
+  // ── Logout ──
+  async function logout() {
+    await fetch('/ninja-admin/logout/');
+    window.location.href = '/ninja-admin/login/';
+  }
+
+  // ── Helpers ──
+  function formatDate(d) {
+    const [y, m, day] = d.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m)-1]} ${parseInt(day)}, ${y}`;
+  }
+  function formatTime(t) {
+    const [h, m] = t.split(':');
+    const hour = parseInt(h);
+    return `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
+  }
+  function formatService(s) {
+    const map = { exterior:'Exterior Detail', interior:'Interior Detail', express:'Express Detail', premium:'Premium Care', elite:'Elite Package' };
+    return map[s] || s;
+  }
+  function showInlineMsg(el, text, type) {
+    el.textContent = text; el.className = 'msg-inline ' + type; el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 5000);
+  }
+  function getCookie(name) {
+    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+  }
+</script>
+</body>
+</html>

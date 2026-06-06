@@ -1,6 +1,6 @@
 
 from django.contrib import admin
-from .models import Availability, Appointment
+from .models import Availability, Appointment, ManagerLoginAttempt, Manager
 
 @admin.register(Availability)
 class AvailabilityAdmin(admin.ModelAdmin):
@@ -17,3 +17,13 @@ class AppointmentAdmin(admin.ModelAdmin):
     list_display = ['name', 'service', 'availability', 'email', 'phone', 'created_at']
     list_filter = ['service', 'availability__date']
     ordering = ['-created_at']
+@admin.register(Manager)
+class ManagerAdmin(admin.ModelAdmin):
+    list_display = ['managerName', 'managerEmail', 'locked']
+    list_filter = ['locked']
+    ordering = ['managerName']
+@admin.register(ManagerLoginAttempt)
+class ManagerLoginAttemptAdmin(admin.ModelAdmin):
+    list_display = ['manager', 'timestamp', 'success']
+    list_filter = ['success', 'timestamp']
+    ordering = ['-timestamp']
