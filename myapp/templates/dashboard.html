@@ -1,571 +1,1211 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard – Ninja Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+{% extends "base_admin.html" %}
+
+{% block title %}Dashboard – Ninja Admin{% endblock %}
+
+{% block extra_head %}
 <style>
-  :root {
-    --black: #0a0a0a; --deep: #111; --panel: #161616; --panel2: #1c1c1c;
-    --red: #c8102e; --red-glow: rgba(200,16,46,0.35);
-    --white: #f5f5f0; --muted: #b2b2aa; --border: rgba(255,255,255,0.10);
-    --green: #22c55e; --gold: #d4a843;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--black); color: var(--white); font-family: 'Rajdhani', sans-serif; font-weight: 400; min-height: 100vh; }
-
-  /* ── Top Bar ── */
-  .topbar {
-    background: var(--deep); border-bottom: 1px solid var(--border);
-    padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; z-index: 50;
-  }
-  .topbar-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.6rem; }
-  .topbar-logo .logo-icon { width: 28px; height: 28px; border: 2px solid var(--red); border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transform: rotate(-5deg); }
-  .topbar-logo span { color: var(--red); }
-  .topbar-logo .admin-badge { font-family: 'Rajdhani', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; background: rgba(200,16,46,0.12); border: 1px solid rgba(200,16,46,0.3); color: var(--red); padding: 0.2rem 0.6rem; margin-left: 0.5rem; }
-  .topbar-right { display: flex; align-items: center; gap: 1rem; }
-  .manager-name { font-size: 0.88rem; color: var(--muted); }
-  .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 1rem; font-family: 'Rajdhani', sans-serif; font-weight: 500; font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
-  .btn-logout:hover { border-color: var(--red); color: var(--red); }
-
   /* ── Layout ── */
-  .dashboard-layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 58px); }
-  @media (max-width: 800px) { .dashboard-layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 56px);
+  }
 
   /* ── Sidebar ── */
-  .sidebar { background: var(--deep); border-right: 1px solid var(--border); padding: 1.5rem 0; }
-  .sidebar-section { padding: 0 1.2rem; margin-bottom: 0.3rem; }
-  .sidebar-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: #555; padding: 0.8rem 0.8rem 0.4rem; }
-  .sidebar-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.7rem 0.8rem; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.06em; color: var(--muted); cursor: pointer; border-radius: 2px; transition: all 0.2s; border: 1px solid transparent; }
-  .sidebar-item:hover { color: var(--white); background: rgba(255,255,255,0.04); }
-  .sidebar-item.active { color: var(--white); background: rgba(200,16,46,0.1); border-color: rgba(200,16,46,0.2); }
-  .sidebar-item .icon { font-size: 1rem; width: 20px; text-align: center; }
-  .sidebar-divider { height: 1px; background: var(--border); margin: 1rem 1.2rem; }
+  .sidebar {
+    background: var(--deep);
+    border-right: 1px solid var(--border);
+    padding: 1.2rem 0;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+  }
+  .sidebar-label {
+    font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: #444;
+    padding: 0.9rem 1.2rem 0.4rem;
+  }
+  .sidebar-section { padding: 0 0.8rem; }
+  .nav-item {
+    display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.65rem 0.8rem;
+    font-size: 0.88rem; font-weight: 500; letter-spacing: 0.05em;
+    color: var(--muted);
+    cursor: pointer; border-radius: 2px;
+    border: 1px solid transparent;
+    transition: all 0.18s;
+    user-select: none;
+  }
+  .nav-item:hover { color: var(--white); background: rgba(255,255,255,0.04); }
+  .nav-item.active {
+    color: var(--white);
+    background: var(--red-dim);
+    border-color: var(--red-mid);
+  }
+  .nav-item .nav-icon { width: 18px; text-align: center; font-size: 0.95rem; }
 
-  /* ── Main ── */
+  /* ── Mobile nav ── */
+  .mobile-nav {
+    display: none;
+    background: var(--deep);
+    border-bottom: 1px solid var(--border);
+    padding: 0.7rem 1rem;
+    gap: 0.4rem;
+    overflow-x: auto;
+  }
+  .mobile-nav-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.45rem 0.9rem;
+    font-family: var(--font-body); font-weight: 500; font-size: 0.78rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: all 0.18s;
+  }
+  .mobile-nav-btn.active {
+    background: var(--red-dim);
+    border-color: var(--red-mid);
+    color: var(--white);
+  }
+
+  /* ── Main content ── */
   .main { padding: 2rem; overflow-x: hidden; }
   .page { display: none; }
   .page.active { display: block; }
 
-  /* ── Stats ── */
-  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-  .stat-box { background: var(--panel); border: 1px solid var(--border); border-left: 2px solid var(--red); padding: 1.2rem 1.5rem; }
-  .stat-box .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 0.05em; line-height: 1; }
-  .stat-box .stat-val.green { color: var(--green); }
-  .stat-box .stat-val.gold { color: var(--gold); }
-  .stat-box .stat-lbl { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 0.3rem; }
+  /* ── Page header ── */
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 1.5rem;
+  }
+  .page-title span { color: var(--red); }
+
+  /* ── Stats row ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin-bottom: 2rem;
+  }
+  .stat-box {
+    background: var(--panel);
+    padding: 1.2rem 1.4rem;
+    border-left: 2px solid var(--red);
+  }
+  .stat-val {
+    font-family: var(--font-display);
+    font-size: 2.1rem;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+  .stat-val.green { color: var(--green); }
+  .stat-val.gold  { color: var(--gold); }
+  .stat-val.red   { color: var(--red); }
+  .stat-lbl {
+    font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-top: 0.3rem;
+  }
+
+  /* ── Sub tabs ── */
+  .sub-tabs {
+    display: flex;
+    border: 1px solid var(--border);
+    width: fit-content;
+    margin-bottom: 1.5rem;
+  }
+  .sub-tab {
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.5rem 1.2rem;
+    font-family: var(--font-body); font-weight: 500; font-size: 0.8rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.18s;
+  }
+  .sub-tab:last-child { border-right: none; }
+  .sub-tab:hover { color: var(--white); background: rgba(255,255,255,0.04); }
+  .sub-tab.active {
+    background: var(--red-dim);
+    color: var(--white);
+    border-bottom: 2px solid var(--red);
+  }
 
   /* ── Section header ── */
-  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem; }
-  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.08em; }
+  .section-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap; gap: 0.8rem;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 1.3rem; letter-spacing: 0.08em;
+  }
   .section-title span { color: var(--red); }
 
   /* ── Filter bar ── */
-  .filter-bar { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-  .filter-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 1rem; font-family: 'Rajdhani', sans-serif; font-weight: 500; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.35rem 0.9rem;
+    font-family: var(--font-body); font-weight: 500; font-size: 0.77rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.18s;
+  }
   .filter-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--white); }
   .filter-btn.active { background: var(--red); border-color: var(--red); color: var(--white); }
 
-  /* ── Appointment cards ── */
+  /* ── Appointment list ── */
   .appt-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
-  .appt-card { background: var(--panel); padding: 1.2rem 1.5rem; display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: start; transition: background 0.2s; }
-  .appt-card:hover { background: var(--panel2); }
-  .appt-top { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
-  .appt-name { font-weight: 700; font-size: 1rem; letter-spacing: 0.05em; }
-  .appt-service { background: rgba(200,16,46,0.1); border: 1px solid rgba(200,16,46,0.2); color: var(--red); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.2rem 0.6rem; }
-  .appt-details { display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.88rem; color: var(--muted); }
-  .appt-details span { display: flex; align-items: center; gap: 0.3rem; }
-  .appt-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
-  .btn-sm { padding: 0.4rem 0.9rem; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
-  .btn-confirm { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
-  .btn-confirm:hover { background: rgba(34,197,94,0.2); }
-  .btn-cancel { background: rgba(200,16,46,0.08); border: 1px solid rgba(200,16,46,0.2); color: var(--red); }
-  .btn-cancel:hover { background: rgba(200,16,46,0.18); }
-
-  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
-  .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
-  .empty-state p { font-size: 0.95rem; }
-
-  /* ── Forms ── */
-  .avail-form { background: var(--panel); border: 1px solid var(--border); padding: 2rem; max-width: 600px; }
-  .avail-form h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.08em; margin-bottom: 1.5rem; }
-  .avail-form h3 span { color: var(--red); }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-  .field { display: flex; flex-direction: column; gap: 0.4rem; }
-  .field label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
-  .field input { background: var(--deep); border: 1px solid var(--border); color: var(--white); padding: 0.75rem 0.9rem; font-family: 'Rajdhani', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.3s; width: 100%; }
-  .field input:focus { border-color: var(--red); }
-  .btn-add { background: var(--red); color: var(--white); border: none; padding: 0.85rem 2rem; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); margin-top: 0.5rem; }
-  .btn-add:hover { background: #a80e26; }
-  .btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  /* ── Day / Time chips ── */
-  .chip-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.3rem; }
-  .day-chip {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    background: var(--deep); border: 1px solid var(--border);
-    color: var(--muted); padding: 0.4rem 0.9rem;
-    font-family: 'Rajdhani', sans-serif; font-size: 0.82rem;
-    font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
-    cursor: pointer; transition: all 0.2s; user-select: none;
+  .appt-card {
+    background: var(--panel);
+    padding: 1.1rem 1.4rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem; align-items: start;
+    transition: background 0.18s;
   }
-  .day-chip:has(input:checked) { background: rgba(200,16,46,0.12); border-color: rgba(200,16,46,0.4); color: var(--white); }
-  .day-chip input { display: none; }
+  .appt-card:hover { background: var(--panel2); }
+  .appt-card.past { opacity: 0.6; }
+  .appt-top {
+    display: flex; align-items: center;
+    gap: 0.7rem; flex-wrap: wrap;
+    margin-bottom: 0.45rem;
+  }
+  .appt-name { font-weight: 700; font-size: 0.97rem; letter-spacing: 0.04em; }
+  .appt-details {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    font-size: 0.85rem; color: var(--muted);
+  }
+  .appt-details span { display: flex; align-items: center; gap: 0.3rem; }
+  .appt-note {
+    font-size: 0.82rem; color: var(--muted);
+    margin-top: 0.45rem; font-style: italic;
+  }
+  .appt-actions {
+    display: flex; gap: 0.45rem;
+    flex-shrink: 0; flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .btn-sm {
+    padding: 0.35rem 0.85rem;
+    font-family: var(--font-body); font-weight: 700; font-size: 0.72rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.18s; border: none;
+  }
+  .btn-sm-confirm   { background: rgba(34,197,94,0.12);  border: 1px solid rgba(34,197,94,0.28);  color: var(--green); }
+  .btn-sm-confirm:hover { background: rgba(34,197,94,0.22); }
+  .btn-sm-reschedule { background: rgba(212,168,67,0.08); border: 1px solid rgba(212,168,67,0.25); color: var(--gold); }
+  .btn-sm-reschedule:hover { background: rgba(212,168,67,0.18); }
+  .btn-sm-cancel    { background: rgba(200,16,46,0.08);  border: 1px solid rgba(200,16,46,0.22);  color: var(--red); }
+  .btn-sm-cancel:hover { background: rgba(200,16,46,0.18); }
+
+  /* ── Past header ── */
+  .past-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; gap: 0.8rem;
+    margin-bottom: 1.2rem;
+  }
+  .btn-delete-all {
+    background: rgba(200,16,46,0.08);
+    border: 1px solid rgba(200,16,46,0.3);
+    color: var(--red);
+    padding: 0.55rem 1.3rem;
+    font-family: var(--font-body); font-weight: 700; font-size: 0.78rem;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.18s;
+  }
+  .btn-delete-all:hover { background: rgba(200,16,46,0.18); border-color: var(--red); }
+  .btn-delete-all:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Panel forms ── */
+  .panel-form {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 1.8rem;
+    max-width: 640px;
+    margin-bottom: 2px;
+  }
+  .panel-form-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem; letter-spacing: 0.08em;
+    margin-bottom: 1.4rem;
+  }
+  .panel-form-title span { color: var(--red); }
+  .panel-form-title.green span { color: var(--green); }
+  .form-gap { margin-bottom: 1rem; }
 
   /* ── Availability list ── */
-  .avail-list { margin-top: 2rem; max-width: 600px; }
-  .avail-list h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.08em; margin-bottom: 1rem; }
-  .avail-item { background: var(--panel); border: 1px solid var(--border); padding: 0.8rem 1.2rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1px; }
-  .avail-item-info { display: flex; gap: 1.5rem; font-size: 0.92rem; }
-  .avail-item-date { font-weight: 600; color: var(--white); }
-  .avail-item-time { color: var(--muted); }
-  .avail-item-status { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.2rem 0.6rem; }
-  .status-open { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: var(--green); }
-  .status-booked { background: rgba(200,16,46,0.1); border: 1px solid rgba(200,16,46,0.2); color: var(--red); }
+  .avail-list { margin-top: 2rem; max-width: 640px; }
+  .avail-list-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem; letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+  .avail-list-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.5; }
 
-  /* ── Messages ── */
-  .msg-inline { font-size: 0.85rem; padding: 0.6rem 0.9rem; margin-top: 0.8rem; display: none; }
-  .msg-inline.success { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); color: var(--green); }
-  .msg-inline.error { background: rgba(200,16,46,0.08); border: 1px solid rgba(200,16,46,0.25); color: #ff6b6b; }
-  .loading { color: var(--muted); font-size: 0.9rem; font-style: italic; padding: 1rem 0; }
+  .avail-group {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    margin-bottom: 1px;
+  }
+  .avail-group-header {
+    padding: 0.85rem 1.1rem;
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; transition: background 0.18s;
+    gap: 0.8rem;
+  }
+  .avail-group-header:hover { background: var(--panel2); }
+  .avail-group-info {
+    display: flex; gap: 1rem; align-items: center;
+    flex-wrap: wrap; font-size: 0.9rem;
+  }
+  .avail-group-date { font-weight: 700; }
+  .avail-group-time { color: var(--muted); }
+  .avail-group-right {
+    display: flex; align-items: center; gap: 0.7rem;
+    flex-shrink: 0;
+  }
+  .btn-delete-group {
+    background: transparent;
+    border: 1px solid rgba(200,16,46,0.22);
+    color: var(--red);
+    padding: 0.28rem 0.7rem;
+    font-family: var(--font-body); font-weight: 700; font-size: 0.68rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.18s;
+  }
+  .btn-delete-group:hover { background: rgba(200,16,46,0.12); }
 
-  /* ── Progress bar for bulk ── */
-  .progress-wrap { margin-top: 0.8rem; display: none; }
-  .progress-label { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.4rem; letter-spacing: 0.05em; }
-  .progress-bar { height: 4px; background: var(--border); position: relative; }
-  .progress-fill { height: 100%; background: var(--red); width: 0%; transition: width 0.2s; }
 
+  /* ── Service cards ── */
+  .service-list {
+    display: flex; flex-direction: column;
+    gap: 1.5px; background: var(--border);
+    max-width: 640px;
+  }
+  .service-card { background: var(--panel); }
+  .service-card-header {
+    padding: 1.1rem 1.4rem;
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 1rem; align-items: start;
+    cursor: pointer; transition: background 0.18s;
+  }
+  .service-card-header:hover { background: var(--panel2); }
+  .svc-name { font-weight: 700; font-size: 0.97rem; letter-spacing: 0.04em; margin-bottom: 0.25rem; }
+  .svc-price { font-family: var(--font-display); font-size: 1.05rem; color: var(--gold); letter-spacing: 0.07em; }
+  .svc-suffix { font-size: 0.76rem; color: var(--muted); }
+  .svc-desc { font-size: 0.83rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.5; }
+  .service-card-actions { display: flex; gap: 0.45rem; }
+  .btn-edit-svc {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); padding: 0.35rem 0.8rem;
+    font-family: var(--font-body); font-weight: 500; font-size: 0.72rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.18s; white-space: nowrap;
+  }
+  .btn-edit-svc:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-delete-svc {
+    background: transparent; border: 1px solid rgba(200,16,46,0.22);
+    color: var(--red); padding: 0.35rem 0.8rem;
+    font-family: var(--font-body); font-weight: 500; font-size: 0.72rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.18s;
+  }
+  .btn-delete-svc:hover { background: var(--red-dim); }
+
+  .service-edit-form {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 1.4rem;
+    background: var(--deep);
+  }
+  .service-edit-form.open { display: block; }
+
+  .btn-add-svc {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: transparent;
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--green);
+    padding: 0.55rem 1.3rem;
+    font-family: var(--font-body); font-weight: 700; font-size: 0.8rem;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.18s;
+    margin-bottom: 1.4rem;
+  }
+  .btn-add-svc:hover { background: rgba(34,197,94,0.08); border-color: var(--green); }
+
+  /* ── Responsive ── */
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .mobile-nav { display: flex; }
+  }
   @media (max-width: 600px) {
     .main { padding: 1rem; }
-    .appt-card { grid-template-columns: 1fr; }
-    .form-row { grid-template-columns: 1fr; }
     .stats-row { grid-template-columns: 1fr 1fr; }
+    .sub-tabs { width: 100%; }
+    .sub-tab { flex: 1; text-align: center; font-size: 0.72rem; padding: 0.45rem; }
+    .appt-card { grid-template-columns: 1fr; }
+    .appt-actions { justify-content: flex-start; margin-top: 0.7rem; }
+    .past-header { flex-direction: column; align-items: flex-start; }
+    .btn-delete-all { width: 100%; text-align: center; }
+    .service-card-header { grid-template-columns: 1fr; }
+    .service-card-actions { margin-top: 0.7rem; }
+    .avail-group-header { flex-direction: column; align-items: flex-start; }
+    .stats-row { gap: 1px; }
   }
 </style>
-</head>
-<body>
+{% endblock %}
 
-<!-- Top Bar -->
-<div class="topbar">
-  <div class="topbar-logo">
-    <div class="logo-icon">忍</div>
-    NINJA <span>AUTO</span>
-    <div class="admin-badge">Admin</div>
-  </div>
-  <div class="topbar-right">
-    <span class="manager-name" id="managerNameDisplay"></span>
-    <button class="btn-logout" onclick="logout()">Log Out</button>
-  </div>
-</div>
+{% block topbar_right %}
+  <button class="btn btn-ghost" onclick="logout()">Log Out</button>
+{% endblock %}
 
-<div class="dashboard-layout">
+{% block body %}
+<!-- Mobile nav -->
+<nav class="mobile-nav" id="mobileNav">
+  <button class="mobile-nav-btn active" onclick="showPage('appointments', this, true)">📋 Bookings</button>
+  <button class="mobile-nav-btn" onclick="showPage('availability', this, true)">📅 Availability</button>
+  <button class="mobile-nav-btn" onclick="showPage('services', this, true)">💲 Services</button>
+  <button class="mobile-nav-btn" onclick="showPage('settings', this, true)">⚙ Settings</button>
+</nav>
+
+<div class="layout">
 
   <!-- Sidebar -->
-  <div class="sidebar">
+  <aside class="sidebar">
     <div class="sidebar-label">Management</div>
     <div class="sidebar-section">
-      <div class="sidebar-item active" onclick="showPage('appointments', this)">
-        <span class="icon">📋</span> Appointments
+      <div class="nav-item active" onclick="showPage('appointments', this)">
+        <span class="nav-icon">📋</span> Appointments
       </div>
-      <div class="sidebar-item" onclick="showPage('availability', this)">
-        <span class="icon">📅</span> Availability
+      <div class="nav-item" onclick="showPage('availability', this)">
+        <span class="nav-icon">📅</span> Availability
+      </div>
+      <div class="nav-item" onclick="showPage('services', this)">
+        <span class="nav-icon">💲</span> Services &amp; Prices
       </div>
     </div>
-    <div class="sidebar-divider"></div>
+    <div class="divider" style="margin: 0.8rem 1.2rem;"></div>
     <div class="sidebar-label">Account</div>
     <div class="sidebar-section">
-      <div class="sidebar-item" onclick="showPage('settings', this)">
-        <span class="icon">⚙</span> Settings
+      <div class="nav-item" onclick="showPage('settings', this)">
+        <span class="nav-icon">⚙</span> Settings
       </div>
     </div>
-  </div>
+  </aside>
 
-  <!-- Main -->
-  <div class="main">
+  <main class="main">
 
-    <!-- ── Appointments Page ── -->
+    <!-- ── APPOINTMENTS ── -->
     <div class="page active" id="page-appointments">
       <div class="stats-row">
-        <div class="stat-box"><div class="stat-val" id="statTotal">—</div><div class="stat-lbl">Total Bookings</div></div>
+        <div class="stat-box"><div class="stat-val" id="statTotal">—</div><div class="stat-lbl">Total</div></div>
         <div class="stat-box"><div class="stat-val green" id="statToday">—</div><div class="stat-lbl">Today</div></div>
         <div class="stat-box"><div class="stat-val gold" id="statUpcoming">—</div><div class="stat-lbl">Upcoming</div></div>
+        <div class="stat-box"><div class="stat-val red" id="statPast">—</div><div class="stat-lbl">Past</div></div>
       </div>
 
-      <div class="section-header">
-        <div class="section-title">ALL <span>APPOINTMENTS</span></div>
-        <div class="filter-bar">
-          <button class="filter-btn active" onclick="filterAppts('all', this)">All</button>
-          <button class="filter-btn" onclick="filterAppts('today', this)">Today</button>
-          <button class="filter-btn" onclick="filterAppts('upcoming', this)">Upcoming</button>
+      <div class="sub-tabs">
+        <button class="sub-tab active" onclick="showSubTab('upcoming', this)">Upcoming</button>
+        <button class="sub-tab" onclick="showSubTab('past', this)">Past</button>
+      </div>
+
+      <!-- Upcoming -->
+      <div id="subpage-upcoming">
+        <div class="section-header">
+          <div class="section-title">UPCOMING <span>APPOINTMENTS</span></div>
+          <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterAppts('all', this)">All</button>
+            <button class="filter-btn" onclick="filterAppts('today', this)">Today</button>
+            <button class="filter-btn" onclick="filterAppts('future', this)">Future</button>
+          </div>
+        </div>
+        <div id="apptList" class="appt-list">
+          <div class="loading">Loading appointments...</div>
         </div>
       </div>
 
-      <div id="apptList" class="appt-list">
-        <div class="loading">Loading appointments...</div>
+      <!-- Past -->
+      <div id="subpage-past" style="display:none;">
+        <div class="past-header">
+          <div class="section-title">PAST <span>APPOINTMENTS</span></div>
+          <button class="btn-delete-all" id="deleteAllBtn" onclick="deletePastAppointments()">🗑 Delete All Past</button>
+        </div>
+        <div id="pastApptList" class="appt-list">
+          <div class="loading">Loading...</div>
+        </div>
       </div>
     </div>
 
-    <!-- ── Availability Page ── -->
+    <!-- ── AVAILABILITY ── -->
     <div class="page" id="page-availability">
-      <div class="section-title" style="margin-bottom:1.5rem;">MANAGE <span style="color:var(--red)">AVAILABILITY</span></div>
+      <div class="page-title">MANAGE <span>AVAILABILITY</span></div>
 
-      <!-- Bulk Generator -->
-      <div class="avail-form" style="margin-bottom:1.5px;">
-        <h3>BULK <span>GENERATOR</span></h3>
+      <!-- Bulk generator -->
+      <div class="panel-form">
+        <div class="panel-form-title">BULK <span>GENERATOR</span></div>
 
-        <div class="form-row">
-          <div class="field">
-            <label>From Date</label>
-            <input type="date" id="bulkFrom">
-          </div>
-          <div class="field">
-            <label>To Date</label>
-            <input type="date" id="bulkTo">
-          </div>
+        <div class="grid-2 form-gap">
+          <div class="field"><label>From Date</label><input type="date" id="bulkFrom"></div>
+          <div class="field"><label>To Date</label><input type="date" id="bulkTo"></div>
         </div>
 
-        <div class="field" style="margin-bottom:1rem;">
-          <label style="margin-bottom:0.5rem;display:block;">Days of Week</label>
+        <div class="field form-gap">
+          <label style="display:block;margin-bottom:0.4rem;">Days of Week</label>
           <div class="chip-group" id="dayChips">
-            <label class="day-chip"><input type="checkbox" value="1"> Mon</label>
-            <label class="day-chip"><input type="checkbox" value="2"> Tue</label>
-            <label class="day-chip"><input type="checkbox" value="3"> Wed</label>
-            <label class="day-chip"><input type="checkbox" value="4"> Thu</label>
-            <label class="day-chip"><input type="checkbox" value="5"> Fri</label>
-            <label class="day-chip"><input type="checkbox" value="6"> Sat</label>
-            <label class="day-chip"><input type="checkbox" value="0"> Sun</label>
+            <label class="chip"><input type="checkbox" value="1"> Sun</label>
+            <label class="chip"><input type="checkbox" value="2"> Mon</label>
+            <label class="chip"><input type="checkbox" value="3"> Tue</label>
+            <label class="chip"><input type="checkbox" value="4"> Wed</label>
+            <label class="chip"><input type="checkbox" value="5"> Thu</label>
+            <label class="chip"><input type="checkbox" value="6"> Fri</label>
+            <label class="chip"><input type="checkbox" value="0"> Sat</label>
           </div>
         </div>
 
-        <div class="field" style="margin-bottom:1rem;">
-          <label style="margin-bottom:0.5rem;display:block;">Time Slots</label>
+        <div class="field form-gap">
+          <label style="display:block;margin-bottom:0.4rem;">Start Times</label>
           <div class="chip-group" id="timeChips">
-            <label class="day-chip"><input type="checkbox" value="08:00"> 8 AM</label>
-            <label class="day-chip"><input type="checkbox" value="09:00"> 9 AM</label>
-            <label class="day-chip"><input type="checkbox" value="10:00"> 10 AM</label>
-            <label class="day-chip"><input type="checkbox" value="11:00"> 11 AM</label>
-            <label class="day-chip"><input type="checkbox" value="12:00"> 12 PM</label>
-            <label class="day-chip"><input type="checkbox" value="13:00"> 1 PM</label>
-            <label class="day-chip"><input type="checkbox" value="14:00"> 2 PM</label>
-            <label class="day-chip"><input type="checkbox" value="15:00"> 3 PM</label>
-            <label class="day-chip"><input type="checkbox" value="16:00"> 4 PM</label>
-            <label class="day-chip"><input type="checkbox" value="17:00"> 5 PM</label>
+            <label class="chip"><input type="checkbox" value="06:00"> 6 AM</label>
+            <label class="chip"><input type="checkbox" value="07:00"> 7 AM</label>
+            <label class="chip"><input type="checkbox" value="08:00"> 8 AM</label>
+            <label class="chip"><input type="checkbox" value="09:00"> 9 AM</label>
+            <label class="chip"><input type="checkbox" value="10:00"> 10 AM</label>
+            <label class="chip"><input type="checkbox" value="11:00"> 11 AM</label>
+            <label class="chip"><input type="checkbox" value="12:00"> 12 PM</label>
+            <label class="chip"><input type="checkbox" value="13:00"> 1 PM</label>
+            <label class="chip"><input type="checkbox" value="14:00"> 2 PM</label>
+            <label class="chip"><input type="checkbox" value="15:00"> 3 PM</label>
+            <label class="chip"><input type="checkbox" value="16:00"> 4 PM</label>
+            <label class="chip"><input type="checkbox" value="17:00"> 5 PM</label>
+            <label class="chip"><input type="checkbox" value="18:00"> 6 PM</label>
+            <label class="chip"><input type="checkbox" value="19:00"> 7 PM</label>
+            <label class="chip"><input type="checkbox" value="20:00"> 8 PM</label>
+            <label class="chip"><input type="checkbox" value="21:00"> 9 PM</label>
+            <label class="chip"><input type="checkbox" value="22:00"> 10 PM</label>
           </div>
         </div>
 
-        <button class="btn-add" id="bulkBtn" onclick="bulkGenerate()">Generate Slots →</button>
+        <div class="field form-gap" style="max-width:280px;">
+          <label>Duration per Appointment</label>
+          <select id="bulkDuration">
+            <option value="60">1 hour</option>
+            <option value="90">1.5 hours</option>
+            <option value="120" selected>2 hours</option>
+            <option value="150">2.5 hours</option>
+            <option value="180">3 hours</option>
+            <option value="240">4 hours</option>
+            <option value="300">5 hours</option>
+            <option value="360">6 hours</option>
+          </select>
+          <div class="field-hint">Each start time blocks subsequent hour slots to prevent overlaps.</div>
+        </div>
+
+        <button class="btn btn-primary" id="bulkBtn" onclick="bulkGenerate()">Generate Slots →</button>
         <div class="progress-wrap" id="progressWrap">
-          <div class="progress-label" id="progressLabel">Adding slots...</div>
-          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-lbl" id="progressLabel">Creating slots...</div>
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
         </div>
-        <div class="msg-inline" id="bulkMsg"></div>
+        <div class="msg" id="bulkMsg"></div>
       </div>
 
-      <!-- Single Slot -->
-      <div class="avail-form" style="margin-top:1.5px;">
-        <h3>ADD SINGLE <span>SLOT</span></h3>
-        <div class="form-row">
+      <!-- Single slot -->
+      <div class="panel-form">
+        <div class="panel-form-title">ADD SINGLE <span>SLOT</span></div>
+        <div class="grid-3 form-gap">
+          <div class="field"><label>Date</label><input type="date" id="availDate"></div>
           <div class="field">
-            <label>Date</label>
-            <input type="date" id="availDate">
+            <label>Start Time</label>
+            <select id="availTime">
+              <option value="06:00">6:00 AM</option><option value="07:00">7:00 AM</option>
+              <option value="08:00">8:00 AM</option><option value="09:00">9:00 AM</option>
+              <option value="10:00">10:00 AM</option><option value="11:00">11:00 AM</option>
+              <option value="12:00">12:00 PM</option><option value="13:00">1:00 PM</option>
+              <option value="14:00">2:00 PM</option><option value="15:00">3:00 PM</option>
+              <option value="16:00">4:00 PM</option><option value="17:00">5:00 PM</option>
+              <option value="18:00">6:00 PM</option><option value="19:00">7:00 PM</option>
+              <option value="20:00">8:00 PM</option><option value="21:00">9:00 PM</option>
+              <option value="22:00">10:00 PM</option>
+            </select>
           </div>
           <div class="field">
-            <label>Time</label>
-            <input type="time" id="availTime">
+            <label>Duration</label>
+            <select id="singleDuration">
+              <option value="60">1 hour</option><option value="90">1.5 hours</option>
+              <option value="120" selected>2 hours</option><option value="150">2.5 hours</option>
+              <option value="180">3 hours</option><option value="240">4 hours</option>
+              <option value="300">5 hours</option><option value="360">6 hours</option>
+            </select>
           </div>
         </div>
-        <button class="btn-add" onclick="addSlot()">Add Slot →</button>
-        <div class="msg-inline" id="availMsg"></div>
+        <button class="btn btn-primary" onclick="addSingleSlot()">Add Slot →</button>
+        <div class="msg" id="availMsg"></div>
       </div>
 
-      <!-- Existing Slots -->
+      <!-- Existing slots -->
       <div class="avail-list">
-        <h3>EXISTING <span style="color:var(--red)">SLOTS</span></h3>
+        <div class="avail-list-title">EXISTING <span style="color:var(--red)">SLOTS</span></div>
+        <p class="avail-list-sub">One row per bookable appointment. Click to expand and see blocked hours. Delete removes the whole group.</p>
         <div id="availList"><div class="loading">Loading slots...</div></div>
       </div>
     </div>
 
-    <!-- ── Settings Page ── -->
+    <!-- ── SERVICES & PRICES ── -->
+    <div class="page" id="page-services">
+      <div class="page-title">SERVICES <span>&amp; PRICES</span></div>
+      <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.4rem;line-height:1.6;">
+        Add, edit, or remove services. Changes update the homepage immediately.
+      </p>
+
+      <button class="btn-add-svc" onclick="openNewServiceForm()">+ Add New Service</button>
+
+      <!-- New service form -->
+      <div class="panel-form" id="newServiceForm" style="display:none;margin-bottom:1.4rem;border-color:rgba(34,197,94,0.3);">
+        <div class="panel-form-title green">NEW <span>SERVICE</span></div>
+        <div class="grid-2 form-gap">
+          <div class="field"><label>Service Key (no spaces)</label><input type="text" id="ns-key" placeholder="e.g. ceramic_coating"></div>
+          <div class="field"><label>Display Name</label><input type="text" id="ns-name" placeholder="e.g. Ceramic Coating"></div>
+        </div>
+        <div class="grid-3 form-gap">
+          <div class="field"><label>Price From ($)</label><input type="number" id="ns-from" step="0.01" min="0" placeholder="49.99"></div>
+          <div class="field"><label>Price To ($) — optional</label><input type="number" id="ns-to" step="0.01" min="0" placeholder="Leave blank if fixed"></div>
+          <div class="field"><label>Price Suffix</label><input type="text" id="ns-suffix" value="per vehicle"></div>
+        </div>
+        <div class="field form-gap">
+          <label>Description</label>
+          <textarea id="ns-desc" placeholder="Short description shown on the homepage..."></textarea>
+        </div>
+        <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
+          <button class="btn btn-primary" style="clip-path:none;" onclick="saveNewService()">Save Service →</button>
+          <button onclick="closeNewServiceForm()" class="btn btn-ghost" style="padding:0.8rem 1.4rem;">Cancel</button>
+        </div>
+        <div class="msg" id="newSvcMsg"></div>
+      </div>
+
+      <div id="serviceList" class="service-list"><div class="loading">Loading services...</div></div>
+      <div class="msg" id="svcMsg" style="max-width:640px;margin-top:1rem;"></div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
     <div class="page" id="page-settings">
-      <div class="section-title" style="margin-bottom:1.5rem;">ACCOUNT <span style="color:var(--red)">SETTINGS</span></div>
-      <div class="avail-form" style="max-width:400px;">
-        <h3>CHANGE <span>PASSWORD</span></h3>
-        <div class="field" style="margin-bottom:1rem;">
-          <label>New Password</label>
-          <input type="password" id="newPassword" placeholder="Min. 8 characters">
-        </div>
-        <div class="field" style="margin-bottom:1rem;">
-          <label>Confirm Password</label>
-          <input type="password" id="confirmNewPassword" placeholder="Repeat password">
-        </div>
-        <button class="btn-add" onclick="changePassword()">Update Password →</button>
-        <div class="msg-inline" id="pwMsg"></div>
+      <div class="page-title">ACCOUNT <span>SETTINGS</span></div>
+      <div class="panel-form" style="max-width:400px;">
+        <div class="panel-form-title">CHANGE <span>PASSWORD</span></div>
+        <div class="field form-gap"><label>New Password</label><input type="password" id="newPassword" placeholder="Min. 8 characters"></div>
+        <div class="field form-gap"><label>Confirm Password</label><input type="password" id="confirmNewPassword" placeholder="Repeat password"></div>
+        <button class="btn btn-primary" onclick="changePassword()">Update Password →</button>
+        <div class="msg" id="pwMsg"></div>
       </div>
     </div>
 
-  </div>
+  </main>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
-  let allAppointments = [];
+  // ── State ──
+  let allAppointments  = [];
+  let pastAppointments = [];
+  let currentServices  = {};
   const todayStr = new Date().toISOString().split('T')[0];
+  const nowTime  = new Date().toTimeString().slice(0, 5);
 
-  window.addEventListener('load', () => { loadAppointments(); });
+  window.addEventListener('load', () => {
+    loadAppointments();
+    loadServices(); // preload so formatService() works immediately
+  });
 
-  // ── Navigation ──
-  function showPage(name, el) {
+  // ── Navigation ──────────────────────────────────────────────────────────────
+  function showPage(name, el, isMobile = false) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
     document.getElementById('page-' + name).classList.add('active');
+    const navSelector = isMobile ? '.mobile-nav-btn' : '.nav-item';
+    document.querySelectorAll(navSelector).forEach(b => b.classList.remove('active'));
     el.classList.add('active');
     if (name === 'availability') loadAvailability();
+    if (name === 'services')     loadServices();
   }
 
-  // ── Appointments ──
+  function showSubTab(name, btn) {
+    document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('subpage-upcoming').style.display = name === 'upcoming' ? 'block' : 'none';
+    document.getElementById('subpage-past').style.display     = name === 'past'     ? 'block' : 'none';
+    if (name === 'past') renderPastAppointments();
+  }
+
+  // ── Appointments ─────────────────────────────────────────────────────────────
   async function loadAppointments() {
     try {
       const res = await fetch('/api/manager/appointments/');
       if (res.status === 401) { window.location.href = '/ninja-admin/login/'; return; }
       const data = await res.json();
-      allAppointments = data.appointments || [];
-      updateStats();
+      const all = data.appointments || [];
+      allAppointments  = all.filter(a => a.date > todayStr || (a.date === todayStr && a.time_slot >= nowTime));
+      pastAppointments = all.filter(a => a.date < todayStr || (a.date === todayStr && a.time_slot <  nowTime));
+      updateStats(all);
       renderAppointments(allAppointments);
     } catch(e) {
-      document.getElementById('apptList').innerHTML = '<div class="loading">Failed to load appointments.</div>';
+      document.getElementById('apptList').innerHTML = '<div class="loading">Failed to load.</div>';
     }
   }
 
-  function updateStats() {
-    const today = allAppointments.filter(a => a.date === todayStr).length;
-    const upcoming = allAppointments.filter(a => a.date >= todayStr).length;
-    document.getElementById('statTotal').textContent = allAppointments.length;
-    document.getElementById('statToday').textContent = today;
-    document.getElementById('statUpcoming').textContent = upcoming;
+  function updateStats(all) {
+    document.getElementById('statTotal').textContent    = all.length;
+    document.getElementById('statToday').textContent    = all.filter(a => a.date === todayStr).length;
+    document.getElementById('statUpcoming').textContent = allAppointments.length;
+    document.getElementById('statPast').textContent     = pastAppointments.length;
   }
 
   function filterAppts(type, btn) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    if (type === 'all') renderAppointments(allAppointments);
-    else if (type === 'today') renderAppointments(allAppointments.filter(a => a.date === todayStr));
-    else if (type === 'upcoming') renderAppointments(allAppointments.filter(a => a.date >= todayStr));
+    const map = {
+      all:    allAppointments,
+      today:  allAppointments.filter(a => a.date === todayStr),
+      future: allAppointments.filter(a => a.date > todayStr),
+    };
+    renderAppointments(map[type]);
   }
 
-  function renderAppointments(list) {
-    const container = document.getElementById('apptList');
-    if (!list.length) {
-      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No appointments found.</p></div>';
-      return;
-    }
-    container.innerHTML = list.map(a => `
-      <div class="appt-card" id="appt-${a.id}">
+  function apptCard(a, isPast = false) {
+    return `
+      <div class="appt-card ${isPast ? 'past' : ''}" id="${isPast ? 'past-' : ''}appt-${a.id}">
         <div>
           <div class="appt-top">
-            <span class="appt-name">${a.name}</span>
-            <span class="appt-service">${formatService(a.service)}</span>
+            <span class="appt-name">${esc(a.name)}</span>
+            <span class="badge badge-red">${formatService(a.service)}</span>
+            ${isPast ? '<span class="badge badge-muted">Past</span>' : ''}
+            ${a.water == "Yes" && !isPast ? '<span class="badge badge-blue">💧 Water Provided</span>' : ''}
           </div>
           <div class="appt-details">
             <span>📅 ${formatDate(a.date)}</span>
-            <span>🕐 ${formatTime(a.time_slot)}</span>
-            <span>🚗 ${a.car_year} ${a.car_make} ${a.car_model}</span>
-            <span>📞 ${a.phone}</span>
-            <span>✉ ${a.email}</span>
+            <span>🕐 ${formatTime(a.time_slot)}${a.duration ? ' · ' + a.duration : ''}</span>
+            <span>🚗 ${a.car_year} ${esc(a.car_make)} ${esc(a.car_model)}</span>
+            <span>📞 ${esc(a.phone)}</span>
+            <span>✉ ${esc(a.email)}</span>
+            <span> 💧 Water Hose On Site ${esc(a.water)}</span>
+            ${a.address ? `<span>📍 ${esc(a.address)}</span>` : ''}
           </div>
-          ${a.notes ? `<div style="font-size:0.85rem;color:var(--muted);margin-top:0.5rem;font-style:italic;">"${a.notes}"</div>` : ''}
+          ${a.notes ? `<div class="appt-note">"${esc(a.notes)}"</div>` : ''}
         </div>
         <div class="appt-actions">
-          <button class="btn-sm btn-confirm" onclick="sendConfirmation(${a.id}, this)">✉ Confirm</button>
-          <button class="btn-sm btn-cancel" onclick="cancelAppointment(${a.id})">✕ Cancel</button>
+          ${isPast
+            ? `<button class="btn-sm btn-sm-cancel" onclick="cancelSinglePast(${a.id})">🗑 Delete</button>`
+            : `<button class="btn-sm btn-sm-confirm"    onclick="sendConfirmation(${a.id}, this)">✉ Confirm</button>
+               <button class="btn-sm btn-sm-reschedule" onclick="location.href='/reschedule/${a.id}/'">↺ Reschedule</button>
+               <button class="btn-sm btn-sm-cancel"     onclick="cancelAppointment(${a.id})">✕ Cancel</button>`
+          }
         </div>
-      </div>
-    `).join('');
+      </div>`;
+  }
+
+  function renderAppointments(list) {
+    const c = document.getElementById('apptList');
+    c.innerHTML = list.length
+      ? list.map(a => apptCard(a)).join('')
+      : '<div class="empty-state"><div class="empty-icon">📋</div><p>No appointments found.</p></div>';
+  }
+
+  function renderPastAppointments() {
+    const c = document.getElementById('pastApptList');
+    const btn = document.getElementById('deleteAllBtn');
+    if (!pastAppointments.length) {
+      c.innerHTML = '<div class="empty-state"><div class="empty-icon">✓</div><p>No past appointments.</p></div>';
+      btn.disabled = true;
+      return;
+    }
+    btn.disabled = false;
+    c.innerHTML = pastAppointments.map(a => apptCard(a, true)).join('');
   }
 
   async function sendConfirmation(id, btn) {
     btn.textContent = 'Sending...'; btn.disabled = true;
     try {
-      const res = await fetch(`/send-confirmation/${id}/`);
-      const data = await res.json();
+      const data = await fetch(`/send-confirmation/${id}/`).then(r => r.json());
       btn.textContent = data.status === 'success' ? '✓ Sent' : '✕ Failed';
       setTimeout(() => { btn.textContent = '✉ Confirm'; btn.disabled = false; }, 2500);
     } catch(e) { btn.textContent = '✕ Error'; btn.disabled = false; }
   }
 
   async function cancelAppointment(id) {
-    if (!confirm('Cancel this appointment? This cannot be undone.')) return;
-    try {
-      const res = await fetch(`/cancel-appointment/${id}/`);
-      const data = await res.json();
-      if (data.status === 'success') {
-        document.getElementById('appt-' + id)?.remove();
-        allAppointments = allAppointments.filter(a => a.id !== id);
-        updateStats();
-        if (!document.querySelector('.appt-card')) {
-          document.getElementById('apptList').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No appointments found.</p></div>';
-        }
-      }
-    } catch(e) { alert('Failed to cancel. Please try again.'); }
-  }
-
-  // ── Availability ──
-  async function loadAvailability() {
-    document.getElementById('availList').innerHTML = '<div class="loading">Loading slots...</div>';
-    try {
-      const res = await fetch('/api/booked-dates/');
-      const data = await res.json();
-      const allDates = [...data.available, ...data.fully_booked].sort();
-      if (!allDates.length) {
-        document.getElementById('availList').innerHTML = '<div class="loading">No slots added yet.</div>';
-        return;
-      }
-      const rows = await Promise.all(allDates.map(async date => {
-        const r = await fetch(`/api/slots/?date=${date}`);
-        const d = await r.json();
-        return (d.slots || []).map(s => ({ date, time: s.time, booked: s.booked, id: s.id }));
-      }));
-      const slots = rows.flat();
-      if (!slots.length) {
-        document.getElementById('availList').innerHTML = '<div class="loading">No slots found.</div>';
-        return;
-      }
-      document.getElementById('availList').innerHTML = slots.map(s => `
-        <div class="avail-item">
-          <div class="avail-item-info">
-            <span class="avail-item-date">${formatDate(s.date)}</span>
-            <span class="avail-item-time">${formatTime(s.time)}</span>
-          </div>
-          <span class="avail-item-status ${s.booked ? 'status-booked' : 'status-open'}">${s.booked ? 'Booked' : 'Open'}</span>
-        </div>
-      `).join('');
-    } catch(e) {
-      document.getElementById('availList').innerHTML = '<div class="loading">Failed to load slots.</div>';
+    if (!confirm('Cancel this appointment?')) return;
+    const data = await fetch(`/cancel-appointment/${id}/`).then(r => r.json()).catch(() => null);
+    if (data?.status === 'success') {
+      document.getElementById('appt-' + id)?.remove();
+      allAppointments = allAppointments.filter(a => a.id !== id);
+      updateStats([...allAppointments, ...pastAppointments]);
+      if (!document.querySelector('#apptList .appt-card'))
+        document.getElementById('apptList').innerHTML =
+          '<div class="empty-state"><div class="empty-icon">📋</div><p>No appointments found.</p></div>';
     }
   }
 
-  async function addSlot() {
-    const date = document.getElementById('availDate').value;
-    const time = document.getElementById('availTime').value;
-    const msg = document.getElementById('availMsg');
-    if (!date || !time) { showInlineMsg(msg, 'Please select both a date and time.', 'error'); return; }
-
-    const formData = new FormData();
-    formData.append('date', date);
-    formData.append('time_slot', time);
-    formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
-
-    try {
-      const res = await fetch('/api/manager/availability/', { method: 'POST', body: formData });
-      if (res.ok) {
-        showInlineMsg(msg, `Slot added: ${formatDate(date)} at ${formatTime(time)}`, 'success');
-        document.getElementById('availDate').value = '';
-        document.getElementById('availTime').value = '';
-        loadAvailability();
-      } else {
-        showInlineMsg(msg, 'Failed to add slot.', 'error');
-      }
-    } catch(e) { showInlineMsg(msg, 'Network error.', 'error'); }
+  async function cancelSinglePast(id) {
+    if (!confirm('Delete this past appointment?')) return;
+    const data = await fetch(`/cancel-appointment/${id}/`).then(r => r.json()).catch(() => null);
+    if (data?.status === 'success') {
+      document.getElementById('past-appt-' + id)?.remove();
+      pastAppointments = pastAppointments.filter(a => a.id !== id);
+      updateStats([...allAppointments, ...pastAppointments]);
+      if (!pastAppointments.length) renderPastAppointments();
+    }
   }
 
-  // ── Bulk Generator ──
+  async function deletePastAppointments() {
+    if (!confirm(`Delete all ${pastAppointments.length} past appointments?`)) return;
+    const btn = document.getElementById('deleteAllBtn');
+    btn.disabled = true; btn.textContent = 'Deleting...';
+    try {
+      const data = await fetch('/delete-past-appointments/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+      }).then(r => r.json());
+      if (data.status === 'success') {
+        pastAppointments = [];
+        updateStats([...allAppointments]);
+        renderPastAppointments();
+        btn.textContent = `✓ Deleted ${data.deleted}`;
+        setTimeout(() => { btn.textContent = '🗑 Delete All Past'; }, 3000);
+      } else {
+        btn.disabled = false; btn.textContent = '🗑 Delete All Past';
+      }
+    } catch(e) { btn.disabled = false; btn.textContent = '🗑 Delete All Past'; }
+  }
+
+  // ── Availability ─────────────────────────────────────────────────────────────
+  async function loadAvailability() {
+    const container = document.getElementById('availList');
+
+    container.innerHTML =
+      '<div class="loading">Loading slots...</div>';
+
+    try {
+      const res = await fetch('/api/booked-dates/');
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      const allDates = [
+        ...(data.available || []),
+        ...(data.fully_booked || [])
+      ].sort();
+
+      if (!allDates.length) {
+        container.innerHTML =
+          '<div class="loading">No slots added yet.</div>';
+        return;
+      }
+
+      let html = '';
+
+      for (const date of allDates) {
+
+        const slotRes = await fetch(
+          `/api/slots/?date=${encodeURIComponent(date)}`
+        );
+
+        if (!slotRes.ok) continue;
+
+        const slotData = await slotRes.json();
+
+        const slots = slotData.slots || [];
+
+        for (const s of slots) {
+
+          html += `
+            <div class="avail-group" id="avail-group-${s.id}">
+              <div class="avail-group-header" style="cursor:default">
+
+                <div class="avail-group-info">
+
+                  <span class="avail-group-date">
+                    ${formatDate(date)}
+                  </span>
+
+                  <span class="avail-group-time">
+                    ${formatTime(s.time)}
+                    →
+                    ${formatTime(s.end_time)}
+                  </span>
+
+                </div>
+
+                <div class="avail-group-right">
+
+                  <span class="badge ${
+                    s.booked
+                      ? 'badge-red'
+                      : 'badge-green'
+                  }">
+                    ${s.booked ? 'Booked' : 'Open'}
+                  </span>
+
+                  ${
+                    !s.booked
+                      ? `
+                        <button
+                          class="btn-delete-group"
+                          onclick="deleteAvailGroup(${s.id})">
+                          🗑 Delete
+                        </button>
+                      `
+                      : ''
+                  }
+
+                </div>
+
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      container.innerHTML =
+        html ||
+        '<div class="loading">No slots found.</div>';
+
+    } catch (err) {
+
+      console.error('Availability load error:', err);
+
+      container.innerHTML =
+        '<div class="loading">Failed to load availability.</div>';
+    }
+  }
+
+    async function toggleSlotGroup(id, groupId) {
+    const el = document.getElementById('slots-' + id);
+
+    if (!el) return;
+
+    el.classList.toggle('open');
+
+    if (!el.classList.contains('open')) return;
+
+    if (el.dataset.loaded) return;
+
+    el.dataset.loaded = 'true';
+
+    try {
+
+      const res = await fetch(
+        `/api/slots/group/?group_id=${groupId}`
+      );
+
+      const data = await res.json();
+
+      el.innerHTML = (data.slots || [])
+        .map(slot => `
+          <div class="avail-slot-row">
+            <span>${formatTime(slot.time)}</span>
+
+            <span class="badge ${
+              slot.is_primary
+                ? 'badge-green'
+                : 'badge-muted'
+            }">
+              ${slot.is_primary ? 'Start' : 'Blocked'}
+            </span>
+          </div>
+        `)
+        .join('');
+
+    } catch (e) {
+
+      console.error(e);
+
+      el.innerHTML =
+        '<div class="avail-slot-row">Failed to load.</div>';
+    }
+  }
+  async function deleteAvailGroup(id) {
+    if (!confirm('Delete this appointment slot and all its blocked hours?')) return;
+    const data = await fetch(`/delete-availability/${id}/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    }).then(r => r.json()).catch(() => null);
+    if (data?.status === 'success') {
+      document.getElementById('avail-group-' + id)?.remove();
+    } else {
+      alert(data?.message || 'Failed to delete.');
+    }
+  }
+
+  async function addSingleSlot() {
+    const date     = document.getElementById('availDate').value;
+    const time     = document.getElementById('availTime').value;
+    const duration = document.getElementById('singleDuration').value;
+    const msg      = document.getElementById('availMsg');
+    if (!date || !time) { showMsg(msg, 'Select a date and time.', 'err'); return; }
+
+    const fd = new FormData();
+    fd.append('date', date); fd.append('time_slot', time);
+    fd.append('duration', duration); fd.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+    try {
+      const res  = await fetch('/api/manager/availability/', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        showMsg(msg, `Slot added: ${formatDate(date)} at ${formatTime(time)}`, 'ok');
+        document.getElementById('availDate').value = '';
+        loadAvailability();
+      } else if (res.status === 409) {
+        showMsg(msg, `Conflict: ${data.error}`, 'err');
+      } else {
+        showMsg(msg, data.error || 'Failed to add slot.', 'err');
+      }
+    } catch(e) { showMsg(msg, 'Network error.', 'err'); }
+  }
+
   async function bulkGenerate() {
-    const from = document.getElementById('bulkFrom').value;
-    const to = document.getElementById('bulkTo').value;
-    const msg = document.getElementById('bulkMsg');
-    const btn = document.getElementById('bulkBtn');
+    const from       = document.getElementById('bulkFrom').value;
+    const to         = document.getElementById('bulkTo').value;
+    const duration   = document.getElementById('bulkDuration').value;
+    const msg        = document.getElementById('bulkMsg');
+    const btn        = document.getElementById('bulkBtn');
+    const days       = [...document.querySelectorAll('#dayChips input:checked')].map(c => parseInt(c.value));
+    const startTimes = [...document.querySelectorAll('#timeChips input:checked')].map(c => c.value);
 
-    const days = [...document.querySelectorAll('#dayChips input:checked')].map(c => parseInt(c.value));
-    const times = [...document.querySelectorAll('#timeChips input:checked')].map(c => c.value);
+    if (!from || !to)      { showMsg(msg, 'Select a date range.', 'err'); return; }
+    if (from > to)         { showMsg(msg, 'From must be before To.', 'err'); return; }
+    if (!days.length)      { showMsg(msg, 'Select at least one day.', 'err'); return; }
+    if (!startTimes.length){ showMsg(msg, 'Select at least one start time.', 'err'); return; }
 
-    if (!from || !to) { showInlineMsg(msg, 'Please select a date range.', 'error'); return; }
-    if (from > to) { showInlineMsg(msg, 'From date must be before To date.', 'error'); return; }
-    if (!days.length) { showInlineMsg(msg, 'Please select at least one day.', 'error'); return; }
-    if (!times.length) { showInlineMsg(msg, 'Please select at least one time slot.', 'error'); return; }
-
-    // Build date list
+    // Build matching date list
     const dates = [];
     const cur = new Date(from + 'T00:00:00');
-    const end = new Date(to + 'T00:00:00');
+    const end = new Date(to   + 'T00:00:00');
     while (cur <= end) {
       if (days.includes(cur.getDay())) dates.push(cur.toISOString().split('T')[0]);
       cur.setDate(cur.getDate() + 1);
     }
+    if (!dates.length) { showMsg(msg, 'No matching days in that range.', 'err'); return; }
 
-    if (!dates.length) { showInlineMsg(msg, 'No matching days in that range.', 'error'); return; }
-
-    const total = dates.length * times.length;
-    btn.disabled = true;
-    btn.textContent = `Adding ${total} slots...`;
-
-    const progressWrap = document.getElementById('progressWrap');
-    const progressFill = document.getElementById('progressFill');
-    const progressLabel = document.getElementById('progressLabel');
-    progressWrap.style.display = 'block';
-    msg.style.display = 'none';
+    const total = dates.length * startTimes.length;
+    btn.disabled = true; btn.textContent = `Creating ${total} slots...`;
+    const pw = document.getElementById('progressWrap');
+    const pf = document.getElementById('progressFill');
+    const pl = document.getElementById('progressLabel');
+    pw.style.display = 'block'; msg.style.display = 'none';
 
     const csrf = getCookie('csrftoken');
-    let added = 0, failed = 0;
+    let added = 0, conflicts = 0, failed = 0;
 
     for (const date of dates) {
-      for (const time of times) {
-        const formData = new FormData();
-        formData.append('date', date);
-        formData.append('time_slot', time);
-        formData.append('csrfmiddlewaretoken', csrf);
+      for (const startTime of startTimes) {
+        const fd = new FormData();
+        fd.append('date', date); fd.append('time_slot', startTime);
+        fd.append('duration', duration); fd.append('csrfmiddlewaretoken', csrf);
         try {
-          const res = await fetch('/api/manager/availability/', { method: 'POST', body: formData });
-          if (res.ok) added++; else failed++;
+          const res = await fetch('/api/manager/availability/', { method: 'POST', body: fd });
+          if (res.ok)             added++;
+          else if (res.status === 409) conflicts++;
+          else                    failed++;
         } catch(e) { failed++; }
-
-        const pct = Math.round(((added + failed) / total) * 100);
-        progressFill.style.width = pct + '%';
-        progressLabel.textContent = `Adding slots... ${added + failed} / ${total}`;
+        const done = added + conflicts + failed;
+        pf.style.width = Math.round((done / total) * 100) + '%';
+        pl.textContent = `Creating… ${done} / ${total}`;
       }
     }
 
-    progressWrap.style.display = 'none';
-    btn.disabled = false;
-    btn.textContent = 'Generate Slots →';
-    showInlineMsg(msg, `Done — ${added} slots added${failed ? `, ${failed} skipped (already exist)` : ''}.`, added > 0 ? 'success' : 'error');
+    pw.style.display = 'none';
+    btn.disabled = false; btn.textContent = 'Generate Slots →';
+    let txt = `Done — ${added} slot${added !== 1 ? 's' : ''} created`;
+    if (conflicts) txt += `, ${conflicts} skipped (conflict)`;
+    if (failed)    txt += `, ${failed} failed`;
+    showMsg(msg, txt, added > 0 ? 'ok' : 'err');
     loadAvailability();
   }
 
-  // ── Settings ──
-  async function changePassword() {
-    const newPw = document.getElementById('newPassword').value;
-    const confirm = document.getElementById('confirmNewPassword').value;
-    const msg = document.getElementById('pwMsg');
-    if (newPw.length < 8) { showInlineMsg(msg, 'Password must be at least 8 characters.', 'error'); return; }
-    if (newPw !== confirm) { showInlineMsg(msg, 'Passwords do not match.', 'error'); return; }
+  // ── Services & Prices ────────────────────────────────────────────────────────
+  async function loadServices() {
+    document.getElementById('serviceList').innerHTML = '<div class="loading">Loading services...</div>';
     try {
-      const res = await fetch('/api/manager/change-password/', {
+      const data = await fetch('/api/prices/').then(r => r.json());
+      currentServices = data.prices || {};
+      renderServices();
+    } catch(e) {
+      document.getElementById('serviceList').innerHTML = '<div class="loading">Failed to load.</div>';
+    }
+  }
+
+  function renderServices() {
+    const keys = Object.keys(currentServices);
+    if (!keys.length) {
+      document.getElementById('serviceList').innerHTML = '<div class="loading">No services yet. Add one above.</div>';
+      return;
+    }
+    document.getElementById('serviceList').innerHTML = keys.map(key => {
+      const p = currentServices[key];
+      let priceText = `FROM $${parseFloat(p.price_from).toFixed(2)}`;
+      if (p.price_to) priceText += ` – $${parseFloat(p.price_to).toFixed(2)}`;
+      return `
+        <div class="service-card" id="svc-card-${key}">
+          <div class="service-card-header" onclick="toggleServiceEdit('${key}')">
+            <div>
+              <div class="svc-name">${esc(p.name || key)}</div>
+              <div class="svc-price">${priceText}</div>
+              <div class="svc-suffix">${esc(p.suffix)}</div>
+              ${p.description ? `<div class="svc-desc">${esc(p.description)}</div>` : ''}
+            </div>
+            <div class="service-card-actions" onclick="event.stopPropagation()">
+              <button class="btn-edit-svc" onclick="toggleServiceEdit('${key}')">✏ Edit</button>
+              <button class="btn-delete-svc" onclick="deleteService('${key}')">🗑</button>
+            </div>
+          </div>
+          <div class="service-edit-form" id="svc-edit-${key}">
+            <div class="grid-2 form-gap">
+              <div class="field"><label>Display Name</label>
+                <input type="text" id="svc-name-${key}" value="${esc(p.name || key)}"></div>
+              <div class="field"><label>Price Suffix</label>
+                <input type="text" id="svc-suffix-${key}" value="${esc(p.suffix)}"></div>
+            </div>
+            <div class="grid-2 form-gap">
+              <div class="field"><label>Price From ($)</label>
+                <input type="number" id="svc-from-${key}" value="${p.price_from}" step="0.01" min="0"></div>
+              <div class="field"><label>Price To ($) — optional</label>
+                <input type="number" id="svc-to-${key}" value="${p.price_to || ''}" step="0.01" min="0"></div>
+            </div>
+            <div class="field form-gap"><label>Description</label>
+              <textarea id="svc-desc-${key}">${esc(p.description || '')}</textarea></div>
+            <div style="display:flex;gap:0.7rem;flex-wrap:wrap;">
+              <button class="btn btn-primary" style="clip-path:none;margin-top:0;" onclick="saveService('${key}')">Save Changes →</button>
+              <button onclick="toggleServiceEdit('${key}')" class="btn btn-ghost" style="padding:0.8rem 1.4rem;">Cancel</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleServiceEdit(key) {
+    document.getElementById('svc-edit-' + key).classList.toggle('open');
+  }
+
+  async function saveService(key) {
+    const name      = document.getElementById('svc-name-'   + key).value;
+    const priceFrom = document.getElementById('svc-from-'   + key).value;
+    const priceTo   = document.getElementById('svc-to-'     + key).value;
+    const suffix    = document.getElementById('svc-suffix-' + key).value;
+    const desc      = document.getElementById('svc-desc-'   + key).value;
+    const msg       = document.getElementById('svcMsg');
+    if (!priceFrom) { showMsg(msg, 'Price From is required.', 'err'); return; }
+    try {
+      const data = await fetch('/api/update-price/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ service: key, name, price_from: priceFrom, price_to: priceTo || null, suffix, description: desc })
+      }).then(r => r.json());
+      if (data.status === 'success') {
+        showMsg(msg, `"${name}" updated.`, 'ok');
+        currentServices[key] = { name, price_from: priceFrom, price_to: priceTo || null, suffix, description: desc };
+        renderServices();
+      } else { showMsg(msg, 'Failed to update.', 'err'); }
+    } catch(e) { showMsg(msg, 'Network error.', 'err'); }
+  }
+
+  async function deleteService(key) {
+    const name = currentServices[key]?.name || key;
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    try {
+      const data = await fetch('/api/delete-service/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ service: key })
+      }).then(r => r.json());
+      if (data.status === 'success') {
+        delete currentServices[key];
+        renderServices();
+        showMsg(document.getElementById('svcMsg'), `"${name}" deleted.`, 'ok');
+      } else { alert('Failed to delete service.'); }
+    } catch(e) { alert('Network error.'); }
+  }
+
+  function openNewServiceForm() {
+    const f = document.getElementById('newServiceForm');
+    f.style.display = 'block';
+    f.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function closeNewServiceForm() {
+    document.getElementById('newServiceForm').style.display = 'none';
+    ['ns-key','ns-name','ns-from','ns-to','ns-desc'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('ns-suffix').value = 'per vehicle';
+  }
+
+  async function saveNewService() {
+    const key       = document.getElementById('ns-key').value.trim().replace(/\s+/g, '_');
+    const name      = document.getElementById('ns-name').value.trim();
+    const priceFrom = document.getElementById('ns-from').value;
+    const priceTo   = document.getElementById('ns-to').value;
+    const suffix    = document.getElementById('ns-suffix').value;
+    const desc      = document.getElementById('ns-desc').value;
+    const msg       = document.getElementById('newSvcMsg');
+    if (!key || !name || !priceFrom) { showMsg(msg, 'Key, name, and price are required.', 'err'); return; }
+    if (currentServices[key])        { showMsg(msg, `Key "${key}" already exists.`, 'err'); return; }
+    try {
+      const data = await fetch('/api/update-price/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ service: key, name, price_from: priceFrom, price_to: priceTo || null, suffix, description: desc })
+      }).then(r => r.json());
+      if (data.status === 'success') {
+        currentServices[key] = { name, price_from: priceFrom, price_to: priceTo || null, suffix, description: desc };
+        renderServices();
+        closeNewServiceForm();
+        showMsg(document.getElementById('svcMsg'), `"${name}" added.`, 'ok');
+      } else { showMsg(msg, 'Failed to save.', 'err'); }
+    } catch(e) { showMsg(msg, 'Network error.', 'err'); }
+  }
+
+  // ── Settings ─────────────────────────────────────────────────────────────────
+  async function changePassword() {
+    const newPw   = document.getElementById('newPassword').value;
+    const confirm = document.getElementById('confirmNewPassword').value;
+    const msg     = document.getElementById('pwMsg');
+    if (newPw.length < 8)  { showMsg(msg, 'Password must be at least 8 characters.', 'err'); return; }
+    if (newPw !== confirm)  { showMsg(msg, 'Passwords do not match.', 'err'); return; }
+    try {
+      const data = await fetch('/api/manager/change-password/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ managerEmail: '__session__', newPassword: newPw })
-      });
-      const data = await res.json();
+      }).then(r => r.json());
       if (data.status === 'success') {
-        showInlineMsg(msg, 'Password updated successfully.', 'success');
+        showMsg(msg, 'Password updated.', 'ok');
         document.getElementById('newPassword').value = '';
         document.getElementById('confirmNewPassword').value = '';
-      } else {
-        showInlineMsg(msg, 'Failed to update password.', 'error');
-      }
-    } catch(e) { showInlineMsg(msg, 'Network error.', 'error'); }
+      } else { showMsg(msg, 'Failed.', 'err'); }
+    } catch(e) { showMsg(msg, 'Network error.', 'err'); }
   }
 
-  // ── Logout ──
   async function logout() {
     await fetch('/ninja-admin/logout/');
     window.location.href = '/ninja-admin/login/';
   }
 
-  // ── Helpers ──
+  // ── Helpers ──────────────────────────────────────────────────────────────────
   function formatDate(d) {
     const [y, m, day] = d.split('-');
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${months[parseInt(m)-1]} ${parseInt(day)}, ${y}`;
+    return `${months[parseInt(m) - 1]} ${parseInt(day)}, ${y}`;
   }
   function formatTime(t) {
     const [h, m] = t.split(':');
@@ -573,17 +1213,25 @@
     return `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
   }
   function formatService(s) {
-    const map = { exterior:'Exterior Detail', interior:'Interior Detail', express:'Express Detail', premium:'Premium Care', elite:'Elite Package' };
-    return map[s] || s;
+    // Uses live service data; falls back to prettifying the raw key
+    if (currentServices[s]?.name) return currentServices[s].name;
+    return s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
-  function showInlineMsg(el, text, type) {
-    el.textContent = text; el.className = 'msg-inline ' + type; el.style.display = 'block';
-    setTimeout(() => { el.style.display = 'none'; }, 5000);
+  function showMsg(el, text, type) {
+    el.textContent = text;
+    el.className = 'msg ' + type;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 6000);
   }
   function getCookie(name) {
     const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
     return v ? v.pop() : '';
   }
+  function esc(str) {
+    // Prevent XSS when injecting user data into innerHTML
+    return String(str ?? '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 </script>
-</body>
-</html>
+{% endblock %}

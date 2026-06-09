@@ -86,11 +86,26 @@
   /* Time slots */
   .time-slots { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.4rem; }
   .time-slot {
-    background: var(--panel); border: 1px solid var(--border);
-    color: var(--white); padding: 0.5rem 1rem;
-    font-family: 'Rajdhani', sans-serif; font-size: 0.9rem;
-    font-weight: 500; letter-spacing: 0.08em;
-    cursor: pointer; transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+
+    min-width: 140px;
+    padding: 0.7rem 1rem;
+
+    background: var(--panel);
+    border: 1px solid var(--border);
+
+    color: var(--white);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
   .time-slot:hover { border-color: var(--red); color: var(--red); }
   .time-slot.active { background: var(--red); border-color: var(--red); color: var(--white); }
@@ -165,35 +180,76 @@
   .legend-dot.red { background: var(--red); opacity: 0.6; }
   .legend-dot.today { position: relative; }
   .legend-dot.today::after { content: ''; position: absolute; bottom: 0; left: 0; width: 6px; height: 6px; background: var(--white); clip-path: polygon(0 0, 0 100%, 100% 100%); }
-  
-  @media (max-width: 600px) {
-  /* Hero */
-  .booking-hero { padding: 2.5rem 5vw 2rem; }
 
-  /* Layout already stacks at 900px, just fix padding */
-  .form-panel { padding: 2rem 5vw; }
-  .calendar-panel { padding: 2rem 5vw; }
+  .address-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
 
-  /* Form grid single column */
-  .form-grid { grid-template-columns: 1fr; }
-  .form-grid .full { grid-column: 1; }
+.address-row input {
+  flex: 1;
+}
 
-  /* Bigger tap targets on inputs */
-  .field-group input,
-  .field-group select,
-  .field-group textarea { padding: 1rem; font-size: 1rem; }
+.location-btn {
+  padding: 0.95rem 1.4rem;
+  border: 1px solid var(--red);
+  background: transparent;
+  color: var(--white);
+  font-family: Rajdhani, sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  transition: all 0.3s ease;
+}
 
-  /* Calendar cells bigger and more readable */
-  .cal-day { font-size: 0.85rem; }
-  .cal-day-name { font-size: 0.65rem; letter-spacing: 0.08em; }
-  .cal-month { font-size: 1.3rem; }
+.location-btn:hover {
+  background: var(--red);
+  box-shadow: 0 8px 30px rgba(200, 16, 46, 0.35);
+  transform: translateY(-1px);
+}
 
-  /* Time slots full width feel */
-  .time-slot { padding: 0.7rem 1.2rem; font-size: 1rem; }
+.checkbox-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-family: Rajdhani, sans-serif;
+  color: white;
+}
 
-  /* Submit button full width */
-  .btn-submit { width: 100%; justify-content: center; padding: 1.1rem; }
-  .submit-row { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+/* hide real checkbox */
+.checkbox-box input {
+  display: none;
+}
+
+/* empty box */
+.checkbox-box .box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--red);
+  background: transparent;
+  transition: 0.2s ease;
+}
+
+/* when checked → fill red */
+.checkbox-box input:checked + .box {
+  background: var(--red);
+}
+
+/* optional checkmark */
+.checkbox-box input:checked + .box::after {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin: 1px auto;
 }
   </style>
 {% endblock %}
@@ -214,9 +270,11 @@
 
   <div class="booking-layout">
 
-    <!-- Form Panel -->
+    <!-- FORM PANEL -->
     <div class="form-panel">
+
       <h2>YOUR <span>DETAILS</span></h2>
+
       <div class="form-grid">
 
         <div class="field-group">
@@ -242,7 +300,9 @@
           <select name="service" id="serviceSelect" required>
             <option value="">— Select a service —</option>
             {% for value, label in form.fields.service.choices %}
-              <option value="{{ value }}" {% if form.service.value == value %}selected{% endif %}>{{ label }}</option>
+              <option value="{{ value }}" {% if form.service.value == value %}selected{% endif %}>
+                {{ label }}
+              </option>
             {% endfor %}
           </select>
           {% if form.service.errors %}<div class="form-error">{{ form.service.errors.0 }}</div>{% endif %}
@@ -263,43 +323,84 @@
           <input type="number" name="car_year" value="{{ form.car_year.value|default:'' }}" placeholder="2023" min="1980" max="2030" required>
         </div>
 
+        <!-- DATE -->
         <div class="field-group full">
           <label>Select Date</label>
           <div class="date-display" id="dateDisplay" onclick="scrollToCalendar()">
-            <span class="placeholder" id="dateDisplayText">Click to pick a date on the calendar →</span>
+            <span class="placeholder" id="dateDisplayText">
+              Click to pick a date on the calendar →
+            </span>
           </div>
         </div>
 
+        <!-- TIME SLOTS -->
         <div class="field-group full" id="timeSlotsGroup" style="display:none;">
           <label>Select Time Slot</label>
           <div class="time-slots" id="timeSlots"></div>
         </div>
 
+        <!-- ADDRESS -->
+        <div class="field-group full">
+          <label>Address</label>
+          <div class="address-row">
+            <input type="text" name="address" id="addressInput"
+              value="{{ form.address.value|default:'' }}"
+              placeholder="123 Main St, City, State, ZIP Code" required>
+
+            <button type="button" class="location-btn" onclick="fillWithLocation()" style="padding:0.35rem 0.6rem; font-size:0.85rem; line-height:1;">
+              Use my location
+            </button>
+          </div>
+          {% if form.address.errors %}
+            <div class="form-error">{{ form.address.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="field-group full" style="margin-bottom:1.5rem;">
+          <label class="main-label">Water Service:</label>
+          <div class="question-row" style="display:flex; align-items:center; flex-wrap:wrap; gap:1rem; margin-top:0.4rem;">
+            <span class="sub-label" style="margin:0; font-size:0.85rem;">Do you have access to a water hose we can use?</span>
+            <label class="checkbox-box" style="margin:0;">
+              <input type="hidden" name="water" value="No">
+              <input type="checkbox" name="water" value="Yes"
+                  {{ form.water.value|default:'' }}>
+                <span class="box"></span>
+                <span class="check-text">Yes</span>
+            </label>
+          </div>
+          <div class="sub-label" style="font-size:0.82rem;color:var(--muted);margin-top:0.4rem;">
+            *optional and only needed for some services, but it helps us serve you better!
+          </div>
+        </div>
+
+        <!-- NOTES -->
         <div class="field-group full">
           <label>Notes (optional)</label>
-          <textarea name="notes" placeholder="Any special requests or details about your vehicle...">{{ form.notes.value|default:'' }}</textarea>
+          <textarea name="notes"
+            placeholder="Any special requests or details about your vehicle...">{{ form.notes.value|default:'' }}</textarea>
+        </div>
+
+
+        <!-- SUBMIT -->
+        <div class="submit-row">
+          <button type="submit" class="btn-submit" id="submitBtn" disabled>
+            Book Now →
+          </button>
+          <span class="submit-note">Select a date and time slot to continue</span>
         </div>
 
       </div>
-
-      {% if form.non_field_errors %}
-        <div class="form-error" style="margin-top:1rem;">{{ form.non_field_errors.0 }}</div>
-      {% endif %}
-
-      <div class="submit-row">
-        <button type="submit" class="btn-submit" id="submitBtn" disabled>Book Now →</button>
-        <span class="submit-note">Select a date and time slot to continue</span>
-      </div>
     </div>
 
-    <!-- Calendar Panel -->
+    <!-- CALENDAR PANEL -->
     <div class="calendar-panel" id="calendarPanel">
+
       <h2>PICK A <span>DATE</span></h2>
 
       <div class="cal-header">
-        <button type="button" class="cal-nav" id="prevMonth">&#8592;</button>
+        <button type="button" class="cal-nav" id="prevMonth">←</button>
         <div class="cal-month" id="calMonth"></div>
-        <button type="button" class="cal-nav" id="nextMonth">&#8594;</button>
+        <button type="button" class="cal-nav" id="nextMonth">→</button>
       </div>
 
       <div class="cal-grid" id="calGrid">
@@ -317,6 +418,7 @@
         <div class="legend-item"><div class="legend-dot red"></div> Unavailable</div>
         <div class="legend-item"><div class="legend-dot today"></div> Today</div>
       </div>
+
     </div>
 
   </div>
@@ -440,7 +542,11 @@
       data.slots.forEach(slot => {
         const btn = document.createElement('div');
         btn.className = 'time-slot' + (slot.booked ? ' booked' : '');
-        btn.textContent = formatTime(slot.time);
+       btn.innerHTML = `
+        <div class="slot-time">
+          ${formatTime(slot.time)} – ${formatTime(slot.end_time)}
+        </div>
+`;
         if (!slot.booked) {
           btn.addEventListener('click', () => {
             document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('active'));
@@ -484,5 +590,31 @@
 
   // Init
   loadBookedDates();
+
+  async function fillWithLocation() {
+  const input = document.getElementById('addressInput');
+
+  if (!navigator.geolocation) {
+    alert('Geolocation is not supported by this browser.');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`
+      );
+      const data = await res.json();
+      input.value = data.display_name || `${lat}, ${lon}`;
+    } catch (err) {
+      input.value = `${lat}, ${lon}`;
+    }
+  }, (error) => {
+    alert('Location access was denied or unavailable.');
+  });
+}
 </script>
 {% endblock %}

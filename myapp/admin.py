@@ -14,9 +14,11 @@ class AvailabilityAdmin(admin.ModelAdmin):
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ['name', 'service', 'availability', 'email', 'phone', 'created_at']
+    list_display = ['id', 'name', 'service', 'availability', 'email', 'phone', 'created_at']
     list_filter = ['service', 'availability__date']
+    search_fields = ['id', 'name', 'email', 'phone']
     ordering = ['-created_at']
+    list_display_links = ['id', 'name']
 @admin.register(Manager)
 class ManagerAdmin(admin.ModelAdmin):
     list_display = ['managerName', 'managerEmail', 'locked']

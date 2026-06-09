@@ -7,7 +7,7 @@ class AppointmentForm(forms.ModelForm):
         fields = [
             'name', 'email', 'phone',
             'service', 'car_make', 'car_model', 'car_year',
-            'availability', 'notes'
+            'availability', 'water', 'address', 'notes', 
         ]
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 3}),

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Ninja Auto Detailing{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset & Tokens ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --black:    #0a0a0a;
+    --deep:     #111111;
+    --panel:    #161616;
+    --panel2:   #1c1c1c;
+    --red:      #c8102e;
+    --red-dim:  rgba(200,16,46,0.12);
+    --red-mid:  rgba(200,16,46,0.25);
+    --red-glow: rgba(200,16,46,0.35);
+    --white:    #f5f5f0;
+    --muted:    #b2b2aa;
+    --border:   rgba(255,255,255,0.10);
+    --green:    #22c55e;
+    --gold:     #d4a843;
+    --blue:     #3b82f6;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body:    'Rajdhani', sans-serif;
+  }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--font-body);
+    font-weight: 400;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Top Bar ── */
+  .topbar {
+    background: var(--deep);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-logo {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--white);
+  }
+  .logo-icon {
+    width: 26px; height: 26px;
+    border: 2px solid var(--red);
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    transform: rotate(-5deg);
+    flex-shrink: 0;
+    color: var(--white);
+  }
+  .topbar-logo .accent { color: var(--red); }
+  .admin-badge {
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: var(--red-dim);
+    border: 1px solid var(--red-mid);
+    color: var(--red);
+    padding: 0.18rem 0.55rem;
+    margin-left: 0.4rem;
+    align-self: center;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 0.8rem; }
+
+  /* ── Shared button base ── */
+  .btn {
+    font-family: var(--font-body);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    outline: none;
+  }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.4rem 1rem;
+    font-size: 0.78rem;
+  }
+  .btn-ghost:hover { border-color: var(--red); color: var(--red); }
+  .btn-primary {
+    background: var(--red);
+    color: var(--white);
+    padding: 0.8rem 2rem;
+    font-size: 0.88rem;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  }
+  .btn-primary:hover { background: #a80e26; }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* ── Inline messages ── */
+  .msg { font-size: 0.85rem; padding: 0.55rem 0.9rem; margin-top: 0.8rem; display: none; }
+  .msg.ok  { background: rgba(34,197,94,0.08);  border: 1px solid rgba(34,197,94,0.25);  color: var(--green); }
+  .msg.err { background: rgba(200,16,46,0.08);  border: 1px solid rgba(200,16,46,0.25);  color: #ff6b6b; }
+
+  /* ── Form primitives ── */
+  .field { display: flex; flex-direction: column; gap: 0.35rem; }
+  .field label {
+    font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    background: var(--deep);
+    border: 1px solid var(--border);
+    color: var(--white);
+    padding: 0.7rem 0.85rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.25s;
+    -webkit-appearance: none;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus { border-color: var(--red); }
+  .field select option { background: var(--deep); }
+  .field textarea { resize: vertical; min-height: 70px; }
+  .field-hint { font-size: 0.73rem; color: var(--muted); margin-top: 0.25rem; line-height: 1.5; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  .col-span { grid-column: 1 / -1; }
+
+  /* ── Loading / empty ── */
+  .loading { color: var(--muted); font-size: 0.88rem; font-style: italic; padding: 1rem 0; }
+  .empty-state { text-align: center; padding: 3.5rem 2rem; color: var(--muted); }
+  .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 0.8rem; opacity: 0.25; }
+  .empty-state p { font-size: 0.92rem; }
+
+  /* ── Progress bar ── */
+  .progress-wrap { margin-top: 0.8rem; display: none; }
+  .progress-lbl { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.35rem; }
+  .progress-track { height: 3px; background: var(--border); }
+  .progress-fill { height: 100%; background: var(--red); width: 0%; transition: width 0.15s; }
+
+  /* ── Chip toggles ── */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.3rem; }
+  .chip {
+    display: inline-flex; align-items: center;
+    background: var(--deep);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.35rem 0.85rem;
+    font-family: var(--font-body); font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; user-select: none; transition: all 0.18s;
+  }
+  .chip:has(input:checked) {
+    background: var(--red-dim);
+    border-color: var(--red-mid);
+    color: var(--white);
+  }
+  .chip input { display: none; }
+
+  /* ── Status badges ── */
+  .badge {
+    display: inline-block;
+    font-size: 0.66rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 0.18rem 0.55rem;
+  }
+  .badge-red    { background: var(--red-dim);              border: 1px solid var(--red-mid);              color: var(--red); }
+  .badge-green  { background: rgba(34,197,94,0.10);        border: 1px solid rgba(34,197,94,0.25);        color: var(--green); }
+  .badge-gold   { background: rgba(212,168,67,0.10);       border: 1px solid rgba(212,168,67,0.25);       color: var(--gold); }
+  .badge-muted  { background: rgba(255,255,255,0.06);      border: 1px solid rgba(255,255,255,0.10);      color: var(--muted); }
+  .badge-blue   { background: rgba(59,130,246,0.10);       border: 1px solid rgba(59,130,246,0.30);       color: var(--blue); }
+
+  /* ── Misc utilities ── */
+  .divider { height: 1px; background: var(--border); margin: 1rem 0; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+  /* ── Mobile topbar ── */
+  @media (max-width: 600px) {
+    .topbar { padding: 0 1rem; }
+    .topbar-logo { font-size: 1.15rem; }
+    .admin-badge { display: none; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .btn-primary { clip-path: none; width: 100%; text-align: center; padding: 0.9rem; }
+  }
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<header class="topbar">
+  <a href="/" class="topbar-logo">
+    <div class="logo-icon">忍</div>
+    NINJA <span class="accent">AUTO</span>
+    <span class="admin-badge">Admin</span>
+  </a>
+  <div class="topbar-right">
+    {% block topbar_right %}{% endblock %}
+  </div>
+</header>
+
+{% block body %}{% endblock %}
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

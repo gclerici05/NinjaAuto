@@ -1,0 +1,580 @@
+{% extends 'base.html' %}
+{% block title %}Reschedule Appointment – Ninja Auto Detailing{% endblock %}
+
+{% block extra_head %}
+<style>
+  .reschedule-hero {
+    padding: 4rem 6vw 3rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0d 100%);
+  }
+  .reschedule-hero .section-label { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; }
+  .reschedule-hero .section-label-line { width: 30px; height: 1px; background: var(--red); }
+  .reschedule-hero .section-label-text { font-size: 0.82rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--red); font-family: 'Noto Sans JP', sans-serif; }
+  .reschedule-hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 6vw, 5rem); letter-spacing: 0.05em; line-height: 1; }
+  .reschedule-hero h1 em { color: var(--red); font-style: normal; }
+  .reschedule-hero p { color: var(--muted); font-size: 1rem; margin-top: 0.8rem; }
+
+  /* Current appointment summary */
+  .current-appt {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--gold);
+    padding: 1.5rem 2rem;
+    margin: 2rem 6vw;
+    display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;
+  }
+  .current-appt-label {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem;
+  }
+  .current-appt-detail { display: flex; gap: 2rem; flex-wrap: wrap; }
+  .current-appt-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .current-appt-item .item-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .current-appt-item .item-val { font-size: 1rem; font-weight: 600; color: var(--white); }
+
+  /* Layout */
+  .reschedule-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    min-height: 70vh;
+  }
+  @media (max-width: 900px) { .reschedule-layout { grid-template-columns: 1fr; } }
+
+  /* Form Panel */
+  .form-panel { padding: 3rem 4vw; border-right: 1px solid var(--border); }
+  @media (max-width: 900px) { .form-panel { border-right: none; border-bottom: 1px solid var(--border); } }
+  .form-panel h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.08em; margin-bottom: 2rem; }
+  .form-panel h2 span { color: var(--red); }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-grid .full { grid-column: 1 / -1; }
+  @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } .form-grid .full { grid-column: 1; } }
+
+  .field-group { display: flex; flex-direction: column; gap: 0.4rem; }
+  .field-group label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+  .field-group input,
+  .field-group select,
+  .field-group textarea {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--white); padding: 0.85rem 1rem;
+    font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 400;
+    outline: none; transition: border-color 0.3s; width: 100%; -webkit-appearance: none;
+  }
+  .field-group input:focus,
+  .field-group select:focus,
+  .field-group textarea:focus { border-color: var(--red); }
+  .field-group select option { background: var(--panel); }
+  .field-group textarea { resize: vertical; min-height: 80px; }
+
+  .date-display {
+    background: var(--panel); border: 1px solid var(--border); color: var(--white);
+    padding: 0.85rem 1rem; font-family: 'Rajdhani', sans-serif; font-size: 1rem;
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    transition: border-color 0.3s; user-select: none;
+  }
+  .date-display:hover { border-color: rgba(200,16,46,0.5); }
+  .date-display.selected { border-color: var(--red); }
+  .date-display .placeholder { color: var(--muted); }
+
+  .time-slots { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.4rem; }
+  .time-slot {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--white); padding: 0.5rem 1rem;
+    font-family: 'Rajdhani', sans-serif; font-size: 0.9rem;
+    font-weight: 500; letter-spacing: 0.08em; cursor: pointer; transition: all 0.2s;
+  }
+  .time-slot:hover { border-color: var(--red); color: var(--red); }
+  .time-slot.active { background: var(--red); border-color: var(--red); color: var(--white); }
+  .time-slot.booked { opacity: 0.3; cursor: not-allowed; text-decoration: line-through; }
+  .time-slot.booked:hover { border-color: var(--border); color: var(--white); }
+  .slots-loading { color: var(--muted); font-size: 0.88rem; font-style: italic; }
+  .slots-empty { color: var(--muted); font-size: 0.88rem; }
+
+  .form-error { color: #ff6b6b; font-size: 0.82rem; margin-top: 0.3rem; }
+
+  /* Action buttons */
+  .action-row {
+    margin-top: 2.5rem;
+    display: flex; flex-direction: column; gap: 1rem;
+  }
+
+  .submit-row { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+  .btn-submit {
+    background: var(--red); color: var(--white); border: none;
+    padding: 1rem 2.5rem; font-family: 'Rajdhani', sans-serif;
+    font-weight: 700; font-size: 0.95rem; letter-spacing: 0.2em;
+    text-transform: uppercase; cursor: pointer; transition: all 0.3s;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  }
+  .btn-submit:hover { background: #a80e26; box-shadow: 0 8px 40px var(--red-glow); transform: translateY(-2px); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .submit-note { font-size: 0.82rem; color: var(--muted); }
+
+  /* Cancel section */
+  .cancel-section {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .cancel-section-info { }
+  .cancel-section-info h4 {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    font-size: 0.88rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--white); margin-bottom: 0.3rem;
+  }
+  .cancel-section-info p { font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+  .btn-cancel-appt {
+    background: transparent; color: #ff6b6b;
+    border: 1px solid rgba(255,107,107,0.3);
+    padding: 0.75rem 1.8rem; font-family: 'Rajdhani', sans-serif;
+    font-weight: 700; font-size: 0.85rem; letter-spacing: 0.15em;
+    text-transform: uppercase; cursor: pointer; transition: all 0.3s;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .btn-cancel-appt:hover { background: rgba(255,107,107,0.08); border-color: #ff6b6b; }
+
+  /* Cancel confirmation modal */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border);
+    border-top: 3px solid #ff6b6b;
+    padding: 2.5rem 2rem; max-width: 420px; width: 100%;
+    transform: translateY(20px); transition: transform 0.3s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+  .modal h3 span { color: #ff6b6b; }
+  .modal p { font-size: 0.95rem; color: var(--muted); line-height: 1.7; margin-bottom: 2rem; }
+  .modal-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-modal-cancel { flex: 1; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: #ff6b6b; padding: 0.85rem; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.88rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .btn-modal-cancel:hover { background: rgba(255,107,107,0.18); }
+  .btn-modal-keep { flex: 1; background: var(--deep); border: 1px solid var(--border); color: var(--muted); padding: 0.85rem; font-family: 'Rajdhani', sans-serif; font-weight: 500; font-size: 0.88rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .btn-modal-keep:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+
+  /* Calendar Panel */
+  .calendar-panel { padding: 3rem 4vw; }
+  .calendar-panel h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.08em; margin-bottom: 2rem; }
+  .calendar-panel h2 span { color: var(--red); }
+  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+  .cal-month { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.1em; }
+  .cal-nav { background: transparent; border: 1px solid var(--border); color: var(--white); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
+  .cal-nav:hover { border-color: var(--red); color: var(--red); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; }
+  .cal-day-name { text-align: center; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); padding: 0.5rem 0; margin-bottom: 0.3rem; }
+  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; font-weight: 500; cursor: pointer; border: 1px solid rgba(44,39,39,0.5); transition: all 0.2s; position: relative; }
+  .cal-day:hover:not(.empty):not(.past):not(.fully-booked) { border-color: rgba(200,16,46,0.4); color: var(--red); z-index: 1; }
+  .cal-day.has-slots::before { content: ''; position: absolute; top: 4px; right: 4px; width: 5px; height: 5px; border-radius: 50%; background: #22c55e; }
+  .cal-day.fully-booked { color: #444; cursor: not-allowed; }
+  .cal-day.fully-booked::before { content: ''; position: absolute; top: 4px; right: 4px; width: 5px; height: 5px; border-radius: 50%; background: var(--red); }
+  .cal-day.selected { background: var(--red); color: var(--white) !important; border-color: var(--red); z-index: 1; }
+  .cal-day.today::after { content: ''; position: absolute; bottom: 0; left: 0; width: 10px; height: 10px; background: var(--white); clip-path: polygon(0 0, 0 100%, 100% 100%); }
+  .cal-day.empty { cursor: default; }
+  .cal-day.past { color: #333; cursor: not-allowed; }
+  .cal-legend { display: flex; gap: 1.5rem; margin-top: 1.2rem; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .legend-dot.green { background: #22c55e; }
+  .legend-dot.red { background: var(--red); }
+
+  @media (max-width: 600px) {
+    .current-appt { margin: 1.5rem 5vw; padding: 1.2rem; }
+    .form-panel { padding: 2rem 5vw; }
+    .calendar-panel { padding: 2rem 5vw; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+    .btn-submit { width: 100%; justify-content: center; }
+    .submit-row { flex-direction: column; align-items: flex-start; }
+    .cancel-section { flex-direction: column; align-items: flex-start; }
+    .btn-cancel-appt { width: 100%; text-align: center; }
+  }
+  @media (max-width: 768px) {
+  /* Hero */
+  .reschedule-hero { padding: 2.5rem 5vw 2rem; }
+  .reschedule-hero h1 { font-size: 2.8rem; }
+  .reschedule-hero p { font-size: 0.95rem; }
+
+  /* Current booking summary */
+  .current-appt { margin: 1.2rem 5vw; padding: 1.2rem 1.2rem; gap: 1rem; }
+  .current-appt-detail { gap: 1rem; }
+  .current-appt-item .item-val { font-size: 0.95rem; }
+
+  /* Stack layout */
+  .reschedule-layout { grid-template-columns: 1fr; }
+  .form-panel { padding: 2rem 5vw; border-right: none; border-bottom: 1px solid var(--border); }
+  .calendar-panel { padding: 2rem 5vw; }
+
+  /* Form grid single column */
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid .full { grid-column: 1; }
+
+  /* Bigger tap targets */
+  .field-group input,
+  .field-group select,
+  .field-group textarea { padding: 1rem; font-size: 1rem; }
+
+  /* Date display */
+  .date-display { padding: 1rem; font-size: 0.95rem; }
+
+  /* Time slots easier to tap */
+  .time-slot { padding: 0.75rem 1.2rem; font-size: 1rem; }
+
+  /* Action row */
+  .action-row { margin-top: 2rem; gap: 1.5rem; }
+  .submit-row { flex-direction: column; align-items: stretch; }
+  .btn-submit { width: 100%; text-align: center; justify-content: center; padding: 1.1rem; clip-path: none; }
+  .submit-note { font-size: 0.85rem; }
+
+  /* Cancel section */
+  .cancel-section { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .btn-cancel-appt { width: 100%; text-align: center; padding: 0.9rem; }
+
+  /* Calendar */
+  .cal-month { font-size: 1.2rem; }
+  .cal-day { font-size: 0.82rem; }
+  .cal-day-name { font-size: 0.62rem; letter-spacing: 0.06em; }
+
+  /* Modal */
+  .modal { padding: 2rem 1.5rem; }
+  .modal h3 { font-size: 1.5rem; }
+  .modal-actions { flex-direction: column; }
+  .btn-modal-cancel,
+  .btn-modal-keep { width: 100%; text-align: center; padding: 0.9rem; }
+}
+
+@media (max-width: 380px) {
+  .current-appt-detail { flex-direction: column; gap: 0.8rem; }
+  .cal-day { font-size: 0.75rem; }
+  .cal-day-name { font-size: 0.55rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Cancel Modal -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal">
+    <h3>CANCEL <span>APPOINTMENT?</span></h3>
+    <p>This will permanently cancel your appointment and free up the slot. This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="confirmCancel()">Yes, Cancel It</button>
+      <button class="btn-modal-keep" onclick="closeModal()">Keep Appointment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hero -->
+<div class="reschedule-hero">
+  <div class="section-label">
+    <div class="section-label-line"></div>
+    <span class="section-label-text">Manage Appointment</span>
+  </div>
+  <h1>RESCHEDULE <em>APPOINTMENT</em></h1>
+  <p>Pick a new date and time slot below. Your old slot will be freed up automatically.</p>
+</div>
+
+<!-- Current Appointment Summary -->
+<div class="current-appt">
+  <div>
+    <div class="current-appt-label">Current Booking</div>
+    <div class="current-appt-detail">
+      <div class="current-appt-item">
+        <span class="item-label">Name</span>
+        <span class="item-val">{{ appointment.name }}</span>
+      </div>
+      <div class="current-appt-item">
+        <span class="item-label">Service</span>
+        <span class="item-val">{{ appointment.get_service_display }}</span>
+      </div>
+      <div class="current-appt-item">
+        <span class="item-label">Date</span>
+        <span class="item-val">{{ appointment.availability.date }}</span>
+      </div>
+      <div class="current-appt-item">
+        <span class="item-label">Time</span>
+        <span class="item-val">{{ appointment.availability.time_slot }}</span>
+      </div>
+      <div class="current-appt-item">
+        <span class="item-label">Vehicle</span>
+        <span class="item-val">{{ appointment.car_year }} {{ appointment.car_make }} {{ appointment.car_model }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reschedule Form -->
+<form method="POST" id="rescheduleForm">
+  {% csrf_token %}
+  <input type="hidden" name="availability" id="availabilityInput">
+
+  <div class="reschedule-layout">
+
+    <!-- Form Panel -->
+    <div class="form-panel">
+      <h2>NEW <span>DETAILS</span></h2>
+      <div class="form-grid">
+
+        <div class="field-group">
+          <label>Full Name</label>
+          <input type="text" name="name" value="{{ appointment.name }}" required>
+        </div>
+
+        <div class="field-group">
+          <label>Phone</label>
+          <input type="tel" name="phone" value="{{ appointment.phone }}" required>
+        </div>
+
+        <div class="field-group full">
+          <label>Email</label>
+          <input type="email" name="email" value="{{ appointment.email }}" required>
+        </div>
+
+        <div class="field-group full">
+          <label>Service</label>
+          <select name="service" required>
+            {% for value, label in form.fields.service.choices %}
+              <option value="{{ value }}" {% if appointment.service == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Car Make</label>
+          <input type="text" name="car_make" value="{{ appointment.car_make }}" required>
+        </div>
+
+        <div class="field-group">
+          <label>Car Model</label>
+          <input type="text" name="car_model" value="{{ appointment.car_model }}" required>
+        </div>
+
+        <div class="field-group">
+          <label>Year</label>
+          <input type="number" name="car_year" value="{{ appointment.car_year }}" min="1980" max="2030" required>
+        </div>
+
+        <div class="field-group full">
+          <label>New Date</label>
+          <div class="date-display" id="dateDisplay" onclick="scrollToCalendar()">
+            <span id="dateDisplayText" class="placeholder">Click to pick a new date on the calendar →</span>
+          </div>
+        </div>
+
+        <div class="field-group full" id="timeSlotsGroup" style="display:none;">
+          <label>New Time Slot</label>
+          <div class="time-slots" id="timeSlots"></div>
+        </div>
+
+        <div class="field-group full">
+          <label>Notes (optional)</label>
+          <textarea name="notes">{{ appointment.notes }}</textarea>
+        </div>
+
+      </div>
+
+      <div class="action-row">
+        <!-- Reschedule submit -->
+        <div class="submit-row">
+          <button type="submit" class="btn-submit" id="submitBtn" disabled>Confirm Reschedule →</button>
+          <span class="submit-note" id="submitNote">Select a new date and time slot to continue</span>
+        </div>
+
+        <!-- Cancel appointment -->
+        <div class="cancel-section">
+          <div class="cancel-section-info">
+            <h4>Cancel Appointment</h4>
+            <p>Changed your mind? Cancel your appointment and free up the slot.</p>
+          </div>
+          <button type="button" class="btn-cancel-appt" onclick="openModal()" href="#">Cancel Appointment</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Calendar Panel -->
+    <div class="calendar-panel" id="calendarPanel">
+      <h2>PICK A <span>DATE</span></h2>
+      <div class="cal-header">
+        <button type="button" class="cal-nav" id="prevMonth">&#8592;</button>
+        <div class="cal-month" id="calMonth"></div>
+        <button type="button" class="cal-nav" id="nextMonth">&#8594;</button>
+      </div>
+      <div class="cal-grid" id="calGrid">
+        <div class="cal-day-name">Su</div>
+        <div class="cal-day-name">Mo</div>
+        <div class="cal-day-name">Tu</div>
+        <div class="cal-day-name">We</div>
+        <div class="cal-day-name">Th</div>
+        <div class="cal-day-name">Fr</div>
+        <div class="cal-day-name">Sa</div>
+      </div>
+      <div class="cal-legend">
+        <div class="legend-item"><div class="legend-dot green"></div> Available</div>
+        <div class="legend-item"><div class="legend-dot red"></div> Unavailable</div>
+      </div>
+    </div>
+
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const today = new Date(); today.setHours(0,0,0,0);
+  let currentYear = today.getFullYear();
+  let currentMonth = today.getMonth();
+  let selectedDate = null;
+  let bookedDatesData = { fully_booked: [], available: [] };
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const APPOINTMENT_ID = {{ appointment.id }};
+
+  // ── Calendar ──
+  async function loadBookedDates() {
+    try {
+      const res = await fetch('/api/booked-dates/');
+      bookedDatesData = await res.json();
+    } catch(e) { console.error(e); }
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const grid = document.getElementById('calGrid');
+    while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+    document.getElementById('calMonth').textContent = `${MONTHS[currentMonth]} ${currentYear}`;
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day empty';
+      grid.appendChild(el);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day';
+      el.textContent = d;
+      const dateObj = new Date(currentYear, currentMonth, d);
+      const dateStr = formatDate(dateObj);
+
+      if (dateObj < today) {
+        el.classList.add('past');
+      } else {
+        if (bookedDatesData.fully_booked.includes(dateStr)) {
+          el.classList.add('fully-booked');
+        } else if (bookedDatesData.available.includes(dateStr)) {
+          el.classList.add('has-slots');
+          el.addEventListener('click', () => selectDate(dateObj, dateStr));
+        } else {
+          el.classList.add('fully-booked');
+        }
+        if (dateObj.getTime() === today.getTime()) el.classList.add('today');
+        if (selectedDate && dateStr === formatDate(selectedDate)) el.classList.add('selected');
+      }
+      grid.appendChild(el);
+    }
+  }
+
+  function formatDate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  async function selectDate(dateObj, dateStr) {
+    selectedDate = dateObj;
+    document.getElementById('availabilityInput').value = '';
+    document.getElementById('submitBtn').disabled = true;
+
+    const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+    document.getElementById('dateDisplayText').textContent = dateObj.toLocaleDateString('en-US', opts);
+    document.getElementById('dateDisplay').classList.add('selected');
+    document.getElementById('submitNote').textContent = 'Now select a time slot';
+    renderCalendar();
+
+    const group = document.getElementById('timeSlotsGroup');
+    const slotsDiv = document.getElementById('timeSlots');
+    group.style.display = 'flex';
+    slotsDiv.innerHTML = '<span class="slots-loading">Loading slots...</span>';
+
+    try {
+      const res = await fetch(`/api/slots/?date=${dateStr}`);
+      const data = await res.json();
+      slotsDiv.innerHTML = '';
+      if (!data.slots || !data.slots.length) {
+        slotsDiv.innerHTML = '<span class="slots-empty">No slots available for this date.</span>';
+        return;
+      }
+      data.slots.forEach(slot => {
+        const btn = document.createElement('div');
+        btn.className = 'time-slot' + (slot.booked ? ' booked' : '');
+        btn.textContent = formatTime(slot.time);
+        if (!slot.booked) {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('availabilityInput').value = slot.id;
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitNote').textContent = "You're all set — confirm below";
+          });
+        }
+        slotsDiv.appendChild(btn);
+      });
+    } catch(e) {
+      slotsDiv.innerHTML = '<span class="slots-empty">Could not load slots. Please try again.</span>';
+    }
+  }
+
+  function formatTime(t) {
+    const [h, m] = t.split(':');
+    const hour = parseInt(h);
+    return `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
+  }
+
+  function scrollToCalendar() {
+    document.getElementById('calendarPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('prevMonth').addEventListener('click', () => {
+    currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; } renderCalendar();
+  });
+  document.getElementById('nextMonth').addEventListener('click', () => {
+    currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; } renderCalendar();
+  });
+
+  // ── Cancel Modal ──
+  function openModal() { document.getElementById('cancelModal').classList.add('open'); }
+  function closeModal() { document.getElementById('cancelModal').classList.remove('open'); }
+
+  async function confirmCancel() {
+    try {
+      const res = await fetch(`/cancel-appointment/${APPOINTMENT_ID}/`);
+      const data = await res.json();
+      if (data.status === 'success') {
+        window.location.href = '/';
+      } else {
+        closeModal();
+        alert('Could not cancel the appointment. Please try again.');
+      }
+    } catch(e) {
+      closeModal();
+      alert('Network error. Please try again.');
+    }
+  }
+
+  // Close modal on overlay click
+  document.getElementById('cancelModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  loadBookedDates();
+</script>
+{% endblock %}

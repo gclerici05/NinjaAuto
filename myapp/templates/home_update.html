@@ -405,7 +405,7 @@
         <div class="service-icon">✦</div>
         <h3 class="service-title">Standard Exterior Detail</h3>
         <p class="service-desc">A quick exterior, spot-free car wash: great for removing dirt, dust, and hard road grime.</p>
-        <div class="service-price">FROM $49.99 <span>per vehicle</span></div>
+        <div class="service-price" id="price-exterior"></div>
         <div class="btn-book">Check Availability →</div>
       </div>
     </a>
@@ -416,7 +416,7 @@
         <div class="service-icon">◈</div>
         <h3 class="service-title">Standard Interior Detail</h3>
         <p class="service-desc">Dirty dashboard? Crumb-filled seats? Dusty carpets? Give your car a fresh, clean look inside.</p>
-        <div class="service-price">FROM $59.99 <span>per vehicle</span></div>
+        <div class="service-price" id="price-interior"></div>
         <div class="btn-book">Check Availability →</div>
       </div>
     </a>
@@ -438,7 +438,7 @@
 
         <h3 class="service-title">Standard Express Detail</h3>
         <p class="service-desc">Full exterior hand wash and interior vacuum with surface wipe-down. In and out, spotless.</p>
-        <div class="service-price">FROM $99.99 <span>per vehicle</span></div>
+        <div class="service-price" id="price-express"></div>
         <div class="btn-book">Check Availability →</div>
     </div>
     </a>
@@ -449,7 +449,7 @@
         <div class="service-icon">◇</div>
         <h3 class="service-title">Premium Care Detail</h3>
         <p class="service-desc">Complete interior shampooing, leather conditioning, rim cleaning, tire dressing, and full exterior decontamination.</p>
-        <div class="service-price">FROM $119.99 – $169.99 <span>varies with vehicle size and condition</span></div>
+        <div class="service-price" id="price-premium"></div>
         <div class="btn-book">Check Availability →</div>
       </div>
     </a>
@@ -706,6 +706,21 @@
     });
   },{threshold:0.12});
   reveals.forEach(el=>observer.observe(el));
+
+  async function loadPrices() {
+    try {
+        const res = await fetch('/api/prices/');
+        const data = await res.json();
+        Object.entries(data.prices).forEach(([service, p]) => {
+            const el = document.getElementById('price-' + service);
+            if (!el) return;
+            let text = `FROM $${parseFloat(p.price_from).toFixed(2)}`;
+            if (p.price_to) text += ` – $${parseFloat(p.price_to).toFixed(2)}`;
+            el.innerHTML = `${text} <span>${p.suffix}</span>`;
+        });
+    } catch(e) { console.error('Could not load prices', e); }
+}
+loadPrices();
 </script>
 </body>
 </html>
